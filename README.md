@@ -42,6 +42,13 @@ npm install
   - `log.ts`, `review.ts`, `stats.ts`, `backup.ts`: answer log, spaced repetition of misses (3/10/30/100 hands), stats math, backup format
   - `overrides.ts`: your chart edits (stored as range notation), sanity warnings
   - `dealing.ts`: deals drill spots for every spot type, bet sizes, table state (smart: 60% borderline hands, or realistic)
+- `src/core/engine/`: no-limit hold'em engine
+  - `evaluator.ts`: best 5 of 7 cards (verified against all 2,598,960 five-card hands)
+  - `game.ts`: blinds, turn order, min-raise and short all-in rules, streets, side pots, split pots, showdown (chips: 1bb = 10)
+- `src/core/bots/`: bot players
+  - `personality.ts`: Nit 🧊 / Regular 🎯 / Fish 🐟 / Maniac 🔥 settings
+  - `handRead.ts`: postflop hand strength and draws
+  - `brain.ts`: preflop from the default charts + personality, postflop from strength vs pot odds
 - `src/data/lessons/*.md`: the 5 lessons (edit freely; `[[term-id]]` links the glossary)
 - `src/data/glossary.json`: glossary terms; `match` phrases are auto-linked in app text
 - `src/data/ranges/`: the 25 default charts (JSON); `src/data/charts.test.ts` holds the chart sanity checks
@@ -59,7 +66,10 @@ npm install
 - [x] M5: Stats, leak heatmap, smart repetition, backup
 - [x] M6: Range editor, installable + offline, polish
 
-**Phase 1 is complete.** Next: Phase 2a (M7 game engine, M8 table vs bots).
+**Phase 1 is complete.**
+
+- [x] M7: Game engine and bots (logic only)
+- [ ] M8: Table screen vs bots, preflop grading, hand review
 
 Testing tip: open the app with `#unlock-all` at the end of the URL to unlock every lesson.
 

@@ -292,11 +292,28 @@ time to answer, and source (drill or play).
 - The table is a random mix. Personality icons are visible so you can adjust.
 - Bot decisions include some randomness so they aren't predictable.
 
+### 9.3.1 Bot logic (built in M7)
+- No AI model is used: bots are rule-based, instant, offline and testable. An optional
+  "Ask the coach" explainer (an LLM fed the app's computed facts) is a possible later add-on.
+- **Preflop:** the app's default charts (never the user's edits), adjusted per style:
+  nits keep only the strongest ~60% of each range and 3-bet only premiums; fish call a
+  single raise with any top-45% hand, limp, and rarely 3-bet; maniacs turn calls into
+  raises and raise many extra hands. Facing a 4-bet: AA/KK shove, QQ/AK call.
+- **Postflop:** read made hand (monster / strong / top pair / medium / weak / nothing) and
+  draws (flush, open-ended, gutshot), turn that into a rough win chance, then bet for value,
+  c-bet, semi-bluff, or call when the win chance beats the pot odds (plus a style margin).
+- Measured over 36,000 simulated seat-hands (VPIP / PFR): nit ≈ 8/6, regular ≈ 12/11,
+  fish ≈ 35/6, maniac ≈ 35/34.
+
 ### 9.4 Game engine
 - Betting rules, including min-raise and all-ins
 - Side pots and split pots
 - 7-card hand evaluator and showdown
 - Practice chips with free rebuys
+- Chips are integers with 1bb = 10 chips; state is immutable (`act` returns a new state).
+- Verified by tests: exact counts of all 2,598,960 five-card hands, side pots with three
+  all-ins, odd-chip splits, short all-ins not reopening betting, and 3,000 random hands
+  (plus 4,000 bot hands) that never create or lose a chip.
 
 ### 9.5 Table screen (portrait)
 
@@ -415,8 +432,8 @@ Each milestone ends with a check on the phone and user feedback before the next 
 ### Phase 2a: Real hands, preflop graded
 | # | Milestone | Result |
 |---|---|---|
-| M7 | Game engine: betting, all-ins, side pots, evaluator, showdown | Tests only |
-| M8 | Table screen, bots, preflop grading, hand review, history | Play real hands |
+| M7 | Game engine: betting, all-ins, side pots, evaluator, showdown; bot logic | Tests only |
+| M8 | Table screen, preflop grading, hand review, history | Play real hands |
 
 ### Phase 2b: Postflop
 | # | Milestone | Result |
