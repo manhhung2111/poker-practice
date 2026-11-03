@@ -234,5 +234,50 @@
     "definition": "A wet board has many possible draws (straights, flushes), so hand strength changes a lot on later cards. A dry board has few draws.",
     "example": "Wet: J♥ T♥ 8♣. Dry: K♠ 7♦ 2♣.",
     "match": ["wet board", "dry board", "board texture"]
+  },
+  {
+    "id": "outs",
+    "term": "Outs",
+    "definition": "The cards left in the deck that would make your hand. Rule of 2 and 4: outs × 4 on the flop (two cards to come) or × 2 on the turn gives your rough equity.",
+    "example": "A flush draw has 9 outs: about 35% on the flop, 19% on the turn.",
+    "match": ["outs"]
+  },
+  {
+    "id": "draw",
+    "term": "Draw",
+    "definition": "A hand that isn't made yet but can improve to a strong hand, like four cards to a flush or a straight.",
+    "example": "You hold 9♥ 8♥ on K♥ 7♥ 2♣: a flush draw. On J T 3 with Q 9: an open-ended straight draw.",
+    "match": ["draw", "draws", "flush draw", "straight draw"]
+  },
+  {
+    "id": "implied-odds",
+    "term": "Implied odds",
+    "definition": "The extra chips you expect to win on later streets when your draw hits. They let you call a little lighter with draws than the pot odds alone say.",
+    "match": ["implied odds"]
+  },
+  {
+    "id": "semi-bluff",
+    "term": "Semi-bluff",
+    "definition": "A bet or raise with a draw. It wins if they fold now, and can still win if called and the draw hits.",
+    "match": ["semi-bluff", "semi-bluffs", "semi-bluffing"]
+  },
+  {
+    "id": "showdown-value",
+    "term": "Showdown value",
+    "definition": "A medium hand that can win if the hand goes to showdown without much more betting. Better checked than bet: a bet folds out worse hands and gets called by better ones.",
+    "example": "Second pair on a dry board.",
+    "match": ["showdown value"]
+  },
+  {
+    "id": "nit",
+    "term": "Nit",
+    "definition": "A very tight player who plays few hands and bets big only with strong ones. Believe their big bets.",
+    "match": ["nit", "nits"]
+  },
+  {
+    "id": "maniac",
+    "term": "Maniac",
+    "definition": "A hyper-aggressive player who raises and bluffs with many hands. Call them down lighter.",
+    "match": ["maniac", "maniacs"]
   }
 ]

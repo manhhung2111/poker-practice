@@ -80,3 +80,28 @@ describe('progress', () => {
     })
   })
 })
+
+describe('table lessons (postflop)', () => {
+  const withTable: LessonInfo[] = [
+    ...lessons,
+    { id: 'l4', number: 4, title: 'Four', drill: { spot: 'postflop-facing-bet', positions: ['UTG', 'CO', 'BTN', 'BB'] } },
+  ]
+  const passedAll: ProgressState = { l1: { recent: [], passed: true }, l2: { recent: [], passed: true }, l3: { recent: [], passed: true } }
+
+  it('count postflop decisions once unlocked', () => {
+    let s = passedAll
+    const passed: string[] = []
+    for (let i = 0; i < PASS_WINDOW; i++) {
+      const r = recordAnswer(s, withTable, 'postflop-facing-bet', 'BTN', true)
+      s = r.state
+      passed.push(...r.passed)
+    }
+    expect(passed).toEqual(['l4'])
+    // Locked lessons don't count.
+    expect(recordAnswer({}, withTable, 'postflop-facing-bet', 'BTN', true).state.l4).toBeUndefined()
+  })
+
+  it('do not add drill seats', () => {
+    expect(allowedSeats(passedAll, withTable).rfi).toEqual(allowedSeats(passedAll, lessons).rfi)
+  })
+})

@@ -1,4 +1,4 @@
-import { useMemo, useRef, useState } from 'react'
+import { useEffect, useMemo, useRef, useState } from 'react'
 import { BackupError, makeBackup, parseBackup, type BackupData } from '../../core/backup'
 import type { Chart, ChartDef } from '../../core/charts'
 import type { Overrides } from '../../core/overrides'
@@ -15,11 +15,14 @@ import {
   handTallies,
   lastDays,
   mostMissed,
+  postflopStats,
   tally,
   weakest,
 } from '../../core/stats'
 import type { Lesson } from '../../data/learning'
-import { DRILL_SPOT_TITLES } from '../labels'
+import type { HandRecord } from '../../core/handRecord'
+import { loadHands } from '../../storage/answers'
+import { DRILL_SPOT_TITLES, LESSON_SPOT_TITLES } from '../labels'
 import { HeatGrid } from './HeatGrid'
 import { TrendChart } from './TrendChart'
 
@@ -52,6 +55,13 @@ export function StatsScreen(props: Props) {
   const byPos = groupTally(recent, (e) => e.hero, POSITIONS)
   const missed = mostMissed(recent, 8)
   const chartTitle = (id: string) => charts.find((c) => c.id === id)?.title ?? id
+  const [hands, setHands] = useState<HandRecord[]>([])
+  useEffect(() => {
+    loadHands()
+      .then(setHands)
+      .catch(() => setHands([]))
+  }, [])
+  const post = postflopStats(hands)
 
   return (
     <>
@@ -137,6 +147,37 @@ export function StatsScreen(props: Props) {
           </section>
 
           <Heatmap answers={recent} charts={charts} />
+        </>
+      )}
+
+      {post.total.answered > 0 && (
+        <>
+          <BarList
+            title="After the flop (played hands)"
+            rows={[
+              ...post.byFocus.map((g) => ({ ...g, label: LESSON_SPOT_TITLES[g.key] })),
+              ...post.byStreet.map((g) => ({ ...g, label: g.key[0].toUpperCase() + g.key.slice(1) })),
+            ]}
+          />
+          <section className="section">
+            <h2>Recent postflop mistakes</h2>
+            {post.mistakes.length === 0 ? (
+              <p className="muted">None in your saved hands. Nice.</p>
+            ) : (
+              <ul className="postflop-mistakes">
+                {post.mistakes.map((m, i) => (
+                  <li key={`${m.at}-${i}`}>
+                    <p>
+                      <span className="street-tag">{m.street}</span> <strong>{m.label}</strong>{' '}
+                      <span className={`severity ${m.severity}`}>{m.severity === 'close' ? 'Close spot' : m.severity === 'clear' ? 'Clear mistake' : 'Blunder'}</span>
+                    </p>
+                    <p className="muted small">{m.reason}</p>
+                  </li>
+                ))}
+              </ul>
+            )}
+            <p className="hint">Graded by guidelines (equity, pot odds, board texture), from your last 200 saved hands.</p>
+          </section>
         </>
       )}
 

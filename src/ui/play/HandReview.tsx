@@ -63,6 +63,9 @@ export function HandReview({ record, onNext, nextLabel = 'Next hand' }: { record
 
       <section>
         <h3>Your decisions</h3>
+        {record.decisions.some((d) => d.postflop) && (
+          <p className="muted small">After the flop, grades follow simple guidelines (equity, pot odds, board texture), not solver answers.</p>
+        )}
         {record.decisions.length === 0 ? (
           <p className="muted">You didn't act this hand.</p>
         ) : (
@@ -86,11 +89,19 @@ export function HandReview({ record, onNext, nextLabel = 'Next hand' }: { record
                       )}{' '}
                       <span className="muted">{d.graded.chartTitle}</span>
                     </p>
+                  ) : d.postflop ? (
+                    <>
+                      <p>
+                        <span className={`severity ${d.postflop.severity}`}>{SEVERITY_LABELS[d.postflop.severity]}</span>{' '}
+                        {!d.postflop.correct && <span>Guideline: {d.postflop.acceptable.join(' or ')}.</span>}
+                      </p>
+                      <p className="small">{d.postflop.reason}</p>
+                    </>
                   ) : (
                     <p className="muted small">
                       {d.street === 'preflop'
                         ? 'Not graded: the charts assume no limpers or callers before you.'
-                        : 'Postflop grading comes in the next update.'}
+                        : 'Not graded.'}
                     </p>
                   )}
                 </div>

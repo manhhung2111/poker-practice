@@ -3,7 +3,7 @@ import type { BackupData } from './core/backup'
 import type { ReviewPool, Spot } from './core/dealing'
 import type { Grade } from './core/grading'
 import type { AnswerLog } from './core/log'
-import { POSITIONS } from './core/positions'
+import { POSITIONS, type Position } from './core/positions'
 import { buildReviews, dueItems, queuedItems } from './core/review'
 import {
   type ProgressState,
@@ -11,6 +11,8 @@ import {
   lessonProgress,
   parseProgress,
   recordAnswer,
+  isDrillSpot,
+  type LessonSpot,
   windowScore,
 } from './core/progress'
 import { type ChartOverride, type Overrides, applyOverride, parseOverrides } from './core/overrides'
@@ -174,24 +176,32 @@ export default function App() {
     return () => clearTimeout(t)
   }, [banner])
 
-  /** Saves a graded decision from a drill or a played hand: stats, review queue, lesson progress. */
-  const logAnswer = useCallback((entry: AnswerLog) => {
-    setAnswers((prev) => [...prev, entry])
-    void addAnswer(entry)
+  /** Counts a graded decision toward lessons, with a banner when one is passed. */
+  const recordProgress = useCallback((type: LessonSpot, hero: Position, correct: boolean) => {
     setProgress((prev) => {
-      const r = recordAnswer(prev, LESSONS, entry.type, entry.hero, entry.correct)
+      const r = recordAnswer(prev, LESSONS, type, hero, correct)
       if (r.passed.length) {
         const passed = LESSONS.find((l) => l.id === r.passed[r.passed.length - 1])!
         const next = LESSONS.find((l) => l.number === passed.number + 1)
         setBanner(
           next
             ? `Lesson ${passed.number} passed! Lesson ${next.number} is unlocked.`
-            : `Lesson ${passed.number} passed! You finished the preflop course.`,
+            : `Lesson ${passed.number} passed! You finished the course.`,
         )
       }
       return r.state
     })
   }, [])
+
+  /** Saves a graded decision from a drill or a played hand: stats, review queue, lesson progress. */
+  const logAnswer = useCallback(
+    (entry: AnswerLog) => {
+      setAnswers((prev) => [...prev, entry])
+      void addAnswer(entry)
+      recordProgress(entry.type, entry.hero, entry.correct)
+    },
+    [recordProgress],
+  )
 
   const onAnswer = useCallback(
     (spot: Spot, grade: Grade, ms: number) =>
@@ -245,12 +255,11 @@ export default function App() {
             next={LESSONS.find((l) => l.number === lesson.number + 1)}
             progress={progress}
             onBack={() => setLearn({ kind: 'home' })}
-            onDrill={() =>
-              startDrill(
-                { spot: lesson.drill.spot, positions: lesson.drill.positions, session: 'endless', dealing: 'smart' },
-                lesson.id,
-              )
-            }
+            onDrill={() => {
+              const spot = lesson.drill.spot
+              if (!isDrillSpot(spot)) setTab('play')
+              else startDrill({ spot, positions: lesson.drill.positions, session: 'endless', dealing: 'smart' }, lesson.id)
+            }}
           />
         )
       }
@@ -353,7 +362,7 @@ export default function App() {
         </div>
         {/* Kept mounted while hidden, so a hand in progress survives tab switches; bots pause. */}
         <div hidden={tab !== 'play'}>
-          <PlayScreen charts={charts} active={tab === 'play'} onLogAnswer={logAnswer} />
+          <PlayScreen charts={charts} active={tab === 'play'} onLogAnswer={logAnswer} onPostflopAnswer={recordProgress} />
         </div>
         {tab === 'stats' && (
           <StatsScreen

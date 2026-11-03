@@ -1,6 +1,6 @@
-import { type ProgressState, PASS_NEEDED, PASS_WINDOW, lessonProgress, windowScore } from '../../core/progress'
+import { type ProgressState, PASS_NEEDED, PASS_WINDOW, isDrillSpot, lessonProgress, windowScore } from '../../core/progress'
 import type { Lesson } from '../../data/learning'
-import { DRILL_SPOT_TITLES } from '../labels'
+import { LESSON_SPOT_TITLES } from '../labels'
 import { LessonBody } from './LessonBody'
 
 interface Props {
@@ -14,6 +14,7 @@ interface Props {
 export function LessonScreen({ lesson, next, progress, onBack, onDrill }: Props) {
   const p = lessonProgress(progress, lesson.id)
   const { correct, played } = windowScore(p.recent)
+  const atTable = !isDrillSpot(lesson.drill.spot)
   return (
     <>
       <header className="header">
@@ -30,20 +31,24 @@ export function LessonScreen({ lesson, next, progress, onBack, onDrill }: Props)
 
       <section className="lesson-drill" aria-labelledby="drill-title">
         <p className="eyebrow" id="drill-title">
-          Drill · {DRILL_SPOT_TITLES[lesson.drill.spot]} · {lesson.drill.positions.join(', ')}
+          {atTable
+            ? `Practice at the table · ${LESSON_SPOT_TITLES[lesson.drill.spot]}`
+            : `Drill · ${LESSON_SPOT_TITLES[lesson.drill.spot]} · ${lesson.drill.positions.join(', ')}`}
         </p>
         <Meter correct={correct} played={played} />
         <p className="hint">
           {p.passed
             ? next
               ? `Passed. Lesson ${next.number} is unlocked. Keep practicing any time.`
-              : 'Passed. You finished the preflop course.'
+              : 'Passed. You finished the course.'
             : played
               ? `${correct} right in your last ${played}. Get ${PASS_NEEDED} of ${PASS_WINDOW} to pass${next ? ` and unlock lesson ${next.number}` : ''}.`
-              : `Get ${PASS_NEEDED} of your last ${PASS_WINDOW} right to pass. The first 3 hands are warm-ups.`}
+              : atTable
+                ? `Play hands at the table. Each ${LESSON_SPOT_TITLES[lesson.drill.spot].toLowerCase()} decision is graded by the guidelines; get ${PASS_NEEDED} of your last ${PASS_WINDOW} right to pass.`
+                : `Get ${PASS_NEEDED} of your last ${PASS_WINDOW} right to pass. The first 3 hands are warm-ups.`}
         </p>
         <button type="button" className="primary" onClick={onDrill}>
-          {played ? 'Continue drill' : 'Start drill'}
+          {atTable ? 'Play at the table' : played ? 'Continue drill' : 'Start drill'}
         </button>
       </section>
     </>

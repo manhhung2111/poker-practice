@@ -1,3 +1,6 @@
+import type { HandRecord } from './handRecord'
+import type { Severity } from './grading'
+import { POSTFLOP_FOCUSES, type PostflopFocus } from './postflopGrading'
 import type { HandClass } from './hands'
 import type { AnswerLog } from './log'
 
@@ -102,4 +105,43 @@ export function mostMissed(log: readonly AnswerLog[], limit = 10): Miss[] {
     .filter((m) => m.misses > 0)
     .sort((a, b) => b.misses - a.misses || b.answered - a.answered)
     .slice(0, limit)
+}
+
+// ---------------------------------------------------------------------------
+// Postflop decisions from played hands (graded by guidelines, M10)
+// ---------------------------------------------------------------------------
+
+export interface PostflopStats {
+  total: Tally
+  byFocus: (Tally & { key: PostflopFocus })[]
+  byStreet: (Tally & { key: 'flop' | 'turn' | 'river' })[]
+  /** Most recent misses first. */
+  mistakes: { at: number; street: string; label: string; reason: string; severity: Severity }[]
+}
+
+export function postflopStats(records: readonly HandRecord[], maxMistakes = 5): PostflopStats {
+  const total: Tally = { answered: 0, correct: 0 }
+  const focus = new Map<PostflopFocus, Tally>(POSTFLOP_FOCUSES.map((f) => [f, { answered: 0, correct: 0 }]))
+  const streets = ['flop', 'turn', 'river'] as const
+  const street = new Map<(typeof streets)[number], Tally>(streets.map((s) => [s, { answered: 0, correct: 0 }]))
+  const mistakes: PostflopStats['mistakes'] = []
+  const newestFirst = [...records].sort((a, b) => b.at - a.at)
+  for (const r of newestFirst) {
+    for (const d of r.decisions) {
+      const g = d.postflop
+      if (!g || d.street === 'preflop') continue
+      for (const t of [total, focus.get(g.focus)!, street.get(d.street)!]) {
+        t.answered++
+        if (g.correct) t.correct++
+      }
+      if (!g.correct && mistakes.length < maxMistakes)
+        mistakes.push({ at: r.at, street: d.street, label: d.label, reason: g.reason, severity: g.severity })
+    }
+  }
+  return {
+    total,
+    byFocus: [...focus].map(([key, t]) => ({ key, ...t })),
+    byStreet: [...street].map(([key, t]) => ({ key, ...t })),
+    mistakes,
+  }
 }

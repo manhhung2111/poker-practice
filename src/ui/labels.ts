@@ -1,3 +1,4 @@
+import type { LessonSpot } from '../core/progress'
 import type { ChartSpot } from '../core/charts'
 import type { DrillChoice, DrillSpot } from '../core/dealing'
 import type { HandCategory } from '../core/hands'
@@ -47,6 +48,16 @@ export const DRILL_SPOT_TITLES: Record<DrillChoice, string> = {
   blinds: 'Blinds defense',
   'facing-3bet': 'Facing a 3-bet',
   mixed: 'Mixed',
+}
+
+/** Practice titles for every kind of lesson, preflop drills and table practice. */
+export const LESSON_SPOT_TITLES: Record<LessonSpot, string> = {
+  rfi: DRILL_SPOT_TITLES.rfi,
+  'facing-open': DRILL_SPOT_TITLES['facing-open'],
+  blinds: DRILL_SPOT_TITLES.blinds,
+  'facing-3bet': DRILL_SPOT_TITLES['facing-3bet'],
+  'postflop-facing-bet': 'Facing a bet after the flop',
+  'postflop-betting': 'Betting after the flop',
 }
 
 export const DRILL_SPOT_NOTES: Record<DrillChoice, string> = {

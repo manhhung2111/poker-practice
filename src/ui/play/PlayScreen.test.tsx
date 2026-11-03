@@ -15,8 +15,9 @@ describe('Play screen', () => {
   it('plays 30 hands end to end', async () => {
     localStorage.setItem('poker-trainer:play-settings', JSON.stringify({ speed: 'instant', skipTrivial: false, hints: true, equity: true }))
     const logged: AnswerLog[] = []
+    const postflop: { focus: string; correct: boolean }[] = []
     const errors = vi.spyOn(console, 'error')
-    render(<PlayScreen charts={DEFAULT_CHARTS} active onLogAnswer={(e) => logged.push(e)} />)
+    render(<PlayScreen charts={DEFAULT_CHARTS} active onLogAnswer={(e) => logged.push(e)} onPostflopAnswer={(focus, _hero, correct) => postflop.push({ focus, correct })} />)
 
     let hands = 0
     let actions = 0
@@ -33,6 +34,8 @@ describe('Play screen', () => {
         hands++
         continue
       }
+      // After the flop the equity hint appears shortly after your turn starts.
+      if (screen.queryByText('Reading their likely hands…')) await waitFor(() => expect(screen.getByText(/^Equity ≈ \d+% vs/)).toBeTruthy())
       if (screen.queryByText(/^Equity ≈ \d+% vs/)) equitySeen++
       // Mix of plays: raise sometimes, call/check otherwise, fold now and then.
       const r = (actions++ * 7) % 10
@@ -51,6 +54,9 @@ describe('Play screen', () => {
     expect(hands).toBe(30)
     // The equity hint appeared after the flop at least once.
     expect(equitySeen).toBeGreaterThan(0)
+    // Postflop decisions were graded by the guidelines.
+    expect(postflop.length).toBeGreaterThan(0)
+    expect(postflop.every((p) => p.focus.startsWith('postflop-'))).toBe(true)
     expect(logged.length).toBeGreaterThan(0)
     expect(logged.every((e) => e.source === 'play')).toBe(true)
     expect(errors).not.toHaveBeenCalled()

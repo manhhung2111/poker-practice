@@ -1,9 +1,15 @@
-import { type DrillSpot, heroOptions } from './dealing'
+import { DRILL_SPOTS, type DrillSpot, heroOptions } from './dealing'
+import type { PostflopFocus } from './postflopGrading'
 import type { Position } from './positions'
+
+/** What a lesson practices: a preflop drill spot, or postflop decisions at the table. */
+export type LessonSpot = DrillSpot | PostflopFocus
+
+export const isDrillSpot = (s: LessonSpot): s is DrillSpot => (DRILL_SPOTS as readonly string[]).includes(s)
 
 /** A lesson's drill: which spot type and hero seats count toward passing it. */
 export interface LessonDrill {
-  spot: DrillSpot
+  spot: LessonSpot
   positions: Position[]
 }
 
@@ -52,7 +58,7 @@ export function windowScore(recent: readonly boolean[]): { correct: number; play
 }
 
 /** Does an answer in this spot count toward this lesson? */
-export function countsFor(lesson: LessonInfo, type: DrillSpot, hero: Position): boolean {
+export function countsFor(lesson: LessonInfo, type: LessonSpot, hero: Position): boolean {
   return lesson.drill.spot === type && lesson.drill.positions.includes(hero)
 }
 
@@ -63,7 +69,7 @@ export function countsFor(lesson: LessonInfo, type: DrillSpot, hero: Position): 
 export function recordAnswer(
   state: ProgressState,
   lessons: readonly LessonInfo[],
-  type: DrillSpot,
+  type: LessonSpot,
   hero: Position,
   correct: boolean,
 ): { state: ProgressState; passed: string[] } {
@@ -88,16 +94,17 @@ export function allowedSeats(
 ): Record<DrillSpot, Position[]> {
   const out: Record<DrillSpot, Position[]> = { rfi: [], 'facing-open': [], blinds: [], 'facing-3bet': [] }
   for (const lesson of lessons) {
-    if (!unlockAll && !isUnlocked(state, lessons, lesson.id)) continue
-    const seats = new Set([...out[lesson.drill.spot], ...lesson.drill.positions])
-    out[lesson.drill.spot] = heroOptions(lesson.drill.spot).filter((p) => seats.has(p))
+    const spot = lesson.drill.spot
+    if (!isDrillSpot(spot) || (!unlockAll && !isUnlocked(state, lessons, lesson.id))) continue
+    const seats = new Set([...out[spot], ...lesson.drill.positions])
+    out[spot] = heroOptions(spot).filter((p) => seats.has(p))
   }
   if (unlockAll) for (const t of Object.keys(out) as DrillSpot[]) out[t] = [...heroOptions(t)]
   return out
 }
 
 /** The lesson that unlocks a spot type (first lesson drilling it). */
-export function lessonForSpot(lessons: readonly LessonInfo[], type: DrillSpot): LessonInfo | undefined {
+export function lessonForSpot(lessons: readonly LessonInfo[], type: LessonSpot): LessonInfo | undefined {
   return lessons.find((l) => l.drill.spot === type)
 }
 

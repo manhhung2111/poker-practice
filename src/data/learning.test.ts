@@ -1,12 +1,13 @@
+import { isDrillSpot } from '../core/progress'
 import { describe, expect, it } from 'vitest'
 import { heroOptions } from '../core/dealing'
 import { termRefs } from '../core/markdown'
 import { GLOSSARY, GLOSSARY_BY_ID, LESSONS } from './learning'
 
 describe('lesson and glossary content', () => {
-  it('has 5 lessons in order with unique ids', () => {
-    expect(LESSONS.map((l) => l.number)).toEqual([1, 2, 3, 4, 5])
-    expect(new Set(LESSONS.map((l) => l.id)).size).toBe(5)
+  it('has 7 lessons in order with unique ids', () => {
+    expect(LESSONS.map((l) => l.number)).toEqual([1, 2, 3, 4, 5, 6, 7])
+    expect(new Set(LESSONS.map((l) => l.id)).size).toBe(7)
     for (const l of LESSONS) {
       expect(l.title.length).toBeGreaterThan(5)
       expect(l.blocks.length).toBeGreaterThan(5)
@@ -15,7 +16,9 @@ describe('lesson and glossary content', () => {
 
   it('lesson drills use seats that exist for their spot', () => {
     for (const l of LESSONS) {
-      for (const p of l.drill.positions) expect(heroOptions(l.drill.spot), `${l.id} ${p}`).toContain(p)
+      const spot = l.drill.spot
+      if (!isDrillSpot(spot)) continue // table lessons count every seat
+      for (const p of l.drill.positions) expect(heroOptions(spot), `${l.id} ${p}`).toContain(p)
     }
   })
 

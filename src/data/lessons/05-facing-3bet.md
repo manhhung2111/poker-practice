@@ -38,4 +38,4 @@ A player who 3-bets your UTG open usually has a strong hand. A blind 3-betting a
 - 4-bet KK+ and AK, plus a few suited-ace bluffs.
 - Call wider in position, tighter out of position.
 
-Your drill: **facing a 3-bet from every opening seat**. Score 16 of 20 to finish the preflop course.
+Your drill: **facing a 3-bet from every opening seat**. Score 16 of 20 to finish the preflop part and unlock lesson 6.

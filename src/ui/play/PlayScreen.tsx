@@ -6,6 +6,8 @@ import { type Decision, type HandState, act, legalActions, potSize } from '../..
 import { type HandRecord, type HeroDecision, heroLabel, makeRecord, situationBefore } from '../../core/handRecord'
 import { handClassOf } from '../../core/hands'
 import type { AnswerLog } from '../../core/log'
+import type { Position } from '../../core/positions'
+import { type PostflopFocus, gradePostflop, postflopAction, postflopInfo } from '../../core/postflopGrading'
 import { type TableSession, finishHand, gradeHeroDecision, isTrivialFold, newSession, nextHand } from '../../core/table'
 import { DEFAULT_CHARTS } from '../../data/charts'
 import { addHand, loadHands } from '../../storage/answers'
@@ -23,6 +25,8 @@ interface Props {
   /** False while another tab is shown: bots pause. */
   active: boolean
   onLogAnswer: (entry: AnswerLog) => void
+  /** A postflop decision graded by the guidelines: counts toward lessons 6–7. */
+  onPostflopAnswer: (focus: PostflopFocus, hero: Position, correct: boolean) => void
 }
 
 const SESSION_KEY = 'poker-trainer:table'
@@ -39,7 +43,7 @@ function loadSession(): TableSession {
 
 type View = 'table' | 'history' | 'settings'
 
-export function PlayScreen({ charts, active, onLogAnswer }: Props) {
+export function PlayScreen({ charts, active, onLogAnswer, onPostflopAnswer }: Props) {
   const [session, setSession] = useState<TableSession>(loadSession)
   const [hand, setHand] = useState<HandState | null>(null)
   const [record, setRecord] = useState<HandRecord | null>(null)
@@ -136,6 +140,9 @@ export function PlayScreen({ charts, active, onLogAnswer }: Props) {
       if (state.street !== 'preflop' && !auto) {
         const eq = heroEquity(state, 1200)
         dec.equity = { value: eq.equity, needed: eq.needed, opponents: eq.opponents }
+        const { action, fraction } = postflopAction(state, d)
+        dec.postflop = gradePostflop(postflopInfo(state, hero, eq), action, fraction)
+        onPostflopAnswer(dec.postflop.focus, p.position, dec.postflop.correct)
       }
       if (graded) {
         dec.graded = {
@@ -170,7 +177,7 @@ export function PlayScreen({ charts, active, onLogAnswer }: Props) {
       setRaising(false)
       commit(next)
     },
-    [commit, charts, hero, onLogAnswer, heroEquity],
+    [commit, charts, hero, onLogAnswer, onPostflopAnswer, heroEquity],
   )
 
   // Drive the bots (and auto-folds) one step at a time.
@@ -415,7 +422,7 @@ function History({ records, onOpen, onBack }: { records: HandRecord[]; onOpen: (
         <ul className="chart-list hand-list">
           {records.map((r) => {
             const hero = r.players[r.heroSeat]
-            const misses = r.decisions.filter((d) => d.graded && !d.graded.correct).length
+            const misses = r.decisions.filter((d) => (d.graded && !d.graded.correct) || (d.postflop && !d.postflop.correct)).length
             return (
               <li key={r.at}>
                 <button type="button" className="hand-row" onClick={() => onOpen(r)}>

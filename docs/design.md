@@ -369,6 +369,28 @@ time to answer, and source (drill or play).
 - Each postflop decision in the hand review shows the equity you had and what a call needed.
   This is the base for M10 grading.
 
+### 9.5.3 As built (M10): postflop grading
+- Every postflop decision is graded by guidelines (`core/postflopGrading`), labeled as such
+  in the review. Inputs: equity vs estimated ranges, pot odds, draws, board texture,
+  number of opponents, and whether you raised preflop.
+- **Facing a bet:** call when equity (+5% implied odds for flush / open-ended draws)
+  beats the price; raise for value at ≥70%; semi-bluff raises with a draw are allowed
+  heads-up. Misses are graded by the equity gap: < 6 points close, < 15 clear, else blunder.
+  Raising a hand that should fold is one level worse.
+- **Checked to you:** bet for value at ≥60% (checking is close, clear on the river or at
+  ≥75%; trapping ≥85% on a dry flop is allowed). Below 60%, check is right, and a bet is
+  also fine as a c-bet (raiser, flop, ≤2 opponents, not wet), a semi-bluff, or a heads-up
+  bluff with < 30%. Betting a medium hand is close; bluffing into 3+ players is clear.
+  Small value bets on wet boards get a sizing note.
+- Calibration: grading the bots' own decisions over 300 hands, regulars score about 90%,
+  fish and nits 45–55% when facing bets.
+- **Lessons 6 (Pot odds and equity) and 7 (Betting and board texture)** practice at the
+  table: graded postflop decisions of each kind count toward the 16-of-20 pass rule once
+  the lesson is unlocked. Seven glossary terms were added (outs, draw, implied odds,
+  semi-bluff, showdown value, nit, maniac).
+- Stats has an "After the flop" section from the saved hands: accuracy by decision type
+  and street, and the five most recent postflop mistakes with their reasons.
+
 ### 9.6 Hand review and history
 
 ```

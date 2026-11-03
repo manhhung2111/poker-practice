@@ -3,6 +3,7 @@ import type { Card } from './cards'
 import type { Action, ChartSpot } from './charts'
 import { type HandAction, type HandResult, type HandState, type Street, toBB } from './engine/game'
 import type { Severity } from './grading'
+import type { PostflopGrade } from './postflopGrading'
 import type { Position } from './positions'
 
 /** One of your decisions in a played hand, with its grade when the charts cover it. */
@@ -15,6 +16,8 @@ export interface HeroDecision {
   board: Card[]
   /** After the flop: your estimated equity then, and what a call needed. */
   equity?: { value: number; needed: number | null; opponents: number }
+  /** After the flop: graded by guidelines (equity, pot odds, board texture). */
+  postflop?: PostflopGrade
   graded?: {
     chartId: string
     chartSpot: ChartSpot

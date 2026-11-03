@@ -2155,3 +2155,28 @@ code {
   text-align: center;
   font-weight: 600;
 }
+
+/* ---------- Postflop stats (M10) ---------- */
+.postflop-mistakes {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: grid;
+  border: 1px solid var(--line);
+  border-radius: var(--radius);
+  background: var(--surface);
+}
+.postflop-mistakes li {
+  display: grid;
+  gap: 2px;
+  padding: 8px 12px;
+}
+.postflop-mistakes li + li {
+  border-top: 1px solid var(--line);
+}
+.postflop-mistakes p {
+  margin: 0;
+}
+.postflop-mistakes .small {
+  font-size: var(--step--1);
+}

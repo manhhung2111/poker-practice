@@ -1,8 +1,9 @@
-import { DRILL_SPOTS, type DrillSpot } from '../core/dealing'
+import { DRILL_SPOTS } from '../core/dealing'
+import { POSTFLOP_FOCUSES } from '../core/postflopGrading'
 import type { GlossaryEntry } from '../core/glossary'
 import { type Block, parseBlocks, parseFrontmatter } from '../core/markdown'
-import { type Position, isPosition } from '../core/positions'
-import type { LessonInfo } from '../core/progress'
+import { POSITIONS, type Position, isPosition } from '../core/positions'
+import type { LessonInfo, LessonSpot } from '../core/progress'
 import glossaryJson from './glossary.json'
 
 export interface Lesson extends LessonInfo {
@@ -18,11 +19,12 @@ export function parseLesson(path: string, raw: string, number: number): Lesson {
   const fail = (msg: string): never => {
     throw new Error(`Lesson ${path}: ${msg}`)
   }
-  const spot = meta.drill as DrillSpot
+  const spot = meta.drill as LessonSpot
   if (!meta.id) fail('missing id')
   if (!meta.title) fail('missing title')
-  if (!DRILL_SPOTS.includes(spot)) fail(`unknown drill "${meta.drill}"`)
-  const positions = (meta.positions ?? '').split(',').map((p) => p.trim())
+  if (![...DRILL_SPOTS, ...POSTFLOP_FOCUSES].includes(spot)) fail(`unknown drill "${meta.drill}"`)
+  // Table lessons count every seat unless they list some.
+  const positions = meta.positions ? meta.positions.split(',').map((p) => p.trim()) : [...POSITIONS]
   for (const p of positions) if (!isPosition(p)) fail(`unknown position "${p}"`)
   return {
     id: meta.id,
