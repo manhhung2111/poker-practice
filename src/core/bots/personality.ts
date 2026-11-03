@@ -32,6 +32,8 @@ export interface Style {
   raiseStrong: number
   /** Added to the equity needed to call (positive = folds more). */
   callMargin: number
+  /** Postflop decisions use real equity vs estimated ranges (regulars). */
+  thinksInEquity: boolean
 }
 
 export const STYLES: Record<Personality, Style> = {
@@ -52,6 +54,7 @@ export const STYLES: Record<Personality, Style> = {
     raiseMonster: 0.5,
     raiseStrong: 0.05,
     callMargin: 0.08,
+    thinksInEquity: false,
   },
   regular: {
     label: 'Regular',
@@ -70,6 +73,7 @@ export const STYLES: Record<Personality, Style> = {
     raiseMonster: 0.55,
     raiseStrong: 0.15,
     callMargin: 0,
+    thinksInEquity: true,
   },
   fish: {
     label: 'Fish',
@@ -88,6 +92,7 @@ export const STYLES: Record<Personality, Style> = {
     raiseMonster: 0.25,
     raiseStrong: 0.05,
     callMargin: -0.15,
+    thinksInEquity: false,
   },
   maniac: {
     label: 'Maniac',
@@ -106,5 +111,6 @@ export const STYLES: Record<Personality, Style> = {
     raiseMonster: 0.8,
     raiseStrong: 0.4,
     callMargin: -0.05,
+    thinksInEquity: false,
   },
 }

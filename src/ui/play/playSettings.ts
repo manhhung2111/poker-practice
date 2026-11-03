@@ -8,12 +8,14 @@ export interface PlaySettings {
   skipTrivial: boolean
   /** Show pot odds when facing a bet. Off by default. */
   hints: boolean
+  /** Show your equity against their likely hands after the flop. Off by default. */
+  equity: boolean
 }
 
 export const BOT_DELAY: Record<BotSpeed, number> = { normal: 650, fast: 220, instant: 0 }
 
 const KEY = 'poker-trainer:play-settings'
-const DEFAULTS: PlaySettings = { speed: 'normal', skipTrivial: false, hints: false }
+const DEFAULTS: PlaySettings = { speed: 'normal', skipTrivial: false, hints: false, equity: false }
 
 export function loadPlaySettings(): PlaySettings {
   try {
@@ -23,6 +25,7 @@ export function loadPlaySettings(): PlaySettings {
       speed: ['normal', 'fast', 'instant'].includes(raw.speed) ? raw.speed : 'normal',
       skipTrivial: raw.skipTrivial === true,
       hints: raw.hints === true,
+      equity: raw.equity === true,
     }
   } catch {
     return DEFAULTS

@@ -302,6 +302,7 @@ time to answer, and source (drill or play).
 - **Postflop:** read made hand (monster / strong / top pair / medium / weak / nothing) and
   draws (flush, open-ended, gutshot), turn that into a rough win chance, then bet for value,
   c-bet, semi-bluff, or call when the win chance beats the pot odds (plus a style margin).
+  Since M9, regulars use real equity against estimated ranges instead (§9.5.2).
 - Measured over 36,000 simulated seat-hands (VPIP / PFR): nit ≈ 8/6, regular ≈ 12/11,
   fish ≈ 35/6, maniac ≈ 35/34.
 
@@ -348,6 +349,25 @@ time to answer, and source (drill or play).
 - Quick sizes: standard preflop sizes (§3), ⅓–pot postflop, 2.5×/3×/pot raises, all-in,
   plus a slider. Tap a bot to see its style.
 - The last 200 hands are saved on the device (IndexedDB) with a review for each.
+
+### 9.5.2 As built (M9): equity
+- **Equity calculator** (`core/equity`): a fast integer evaluator (scores identical to the
+  engine's, checked on 20,000 random hands), Monte Carlo against one or more weighted
+  ranges, and exact enumeration heads-up on the turn and river. Verified: AA vs KK ≈ 82%,
+  AKs vs QQ ≈ 46%, 77 vs AKo ≈ 55%, AA vs 3 random hands ≈ 64%.
+- **Range estimates:** the hand is replayed and, for every possible holding, each of the
+  player's actions is re-asked of the simple bot for their style. Holdings that would often
+  act the same way weigh more (small floors keep "unexpected" hands possible). You are
+  read as a regular. Estimates are cached so every bot reads the same street once.
+- **Thinking regulars:** after the flop, regulars use their equity against everyone's
+  estimated ranges: value-bet at ≥62%, call when equity beats the pot odds (+5% for draws,
+  implied odds), raise at high equity. Other styles keep the simpler hand-read logic.
+- **Board texture** (`core/boardTexture`): dry / medium / wet from suits, connectedness and
+  pairing. Bots c-bet more and smaller on dry boards, less on wet ones. Lesson 7 builds on it.
+- **Equity hint** (table setting, off by default): after the flop, "Equity ≈ 41% vs their
+  likely hands · a call needs 25%", green when equity covers the price.
+- Each postflop decision in the hand review shows the equity you had and what a call needed.
+  This is the base for M10 grading.
 
 ### 9.6 Hand review and history
 

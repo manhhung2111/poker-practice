@@ -73,7 +73,7 @@ npm install
 
 - [x] M7: Game engine and bots (logic only)
 - [x] M8: Table screen vs bots, preflop grading, hand review
-- [ ] M9: Equity calculator, postflop bot logic, equity hint
+- [x] M9: Equity calculator, postflop bot logic, equity hint
 - [ ] M10: Postflop grading, lessons 6–7
 
 Testing tip: open the app with `#unlock-all` at the end of the URL to unlock every lesson.

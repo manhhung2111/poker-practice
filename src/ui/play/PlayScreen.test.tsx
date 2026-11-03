@@ -13,13 +13,14 @@ afterEach(cleanup)
 
 describe('Play screen', () => {
   it('plays 30 hands end to end', async () => {
-    localStorage.setItem('poker-trainer:play-settings', JSON.stringify({ speed: 'instant', skipTrivial: false, hints: true }))
+    localStorage.setItem('poker-trainer:play-settings', JSON.stringify({ speed: 'instant', skipTrivial: false, hints: true, equity: true }))
     const logged: AnswerLog[] = []
     const errors = vi.spyOn(console, 'error')
     render(<PlayScreen charts={DEFAULT_CHARTS} active onLogAnswer={(e) => logged.push(e)} />)
 
     let hands = 0
     let actions = 0
+    let equitySeen = 0
     for (let guard = 0; guard < 2000 && hands < 30; guard++) {
       await waitFor(() => {
         const ready = screen.queryByRole('dialog', { name: 'Hand review' }) || screen.queryByRole('button', { name: /^(Call|Check)/ })
@@ -32,6 +33,7 @@ describe('Play screen', () => {
         hands++
         continue
       }
+      if (screen.queryByText(/^Equity ≈ \d+% vs/)) equitySeen++
       // Mix of plays: raise sometimes, call/check otherwise, fold now and then.
       const r = (actions++ * 7) % 10
       const raise = screen.queryByRole('button', { name: /^(Raise|Bet) ▸/ })
@@ -47,6 +49,8 @@ describe('Play screen', () => {
     }
 
     expect(hands).toBe(30)
+    // The equity hint appeared after the flop at least once.
+    expect(equitySeen).toBeGreaterThan(0)
     expect(logged.length).toBeGreaterThan(0)
     expect(logged.every((e) => e.source === 'play')).toBe(true)
     expect(errors).not.toHaveBeenCalled()

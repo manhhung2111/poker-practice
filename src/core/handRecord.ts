@@ -13,6 +13,8 @@ export interface HeroDecision {
   /** What happened before, e.g. "UTG to MP fold, LJ raises to 2.5bb". */
   situation: string
   board: Card[]
+  /** After the flop: your estimated equity then, and what a call needed. */
+  equity?: { value: number; needed: number | null; opponents: number }
   graded?: {
     chartId: string
     chartSpot: ChartSpot

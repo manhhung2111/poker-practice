@@ -75,6 +75,7 @@ export function HandReview({ record, onNext, nextLabel = 'Next hand' }: { record
                   <p>
                     <strong>{d.label}</strong>
                   </p>
+                  {d.equity && <EquityLine eq={d.equity} />}
                   {d.graded ? (
                     <p>
                       <span className={`severity ${d.graded.severity}`}>{SEVERITY_LABELS[d.graded.severity]}</span>{' '}
@@ -89,7 +90,7 @@ export function HandReview({ record, onNext, nextLabel = 'Next hand' }: { record
                     <p className="muted small">
                       {d.street === 'preflop'
                         ? 'Not graded: the charts assume no limpers or callers before you.'
-                        : 'Not graded yet: postflop grading arrives in Phase 2b.'}
+                        : 'Postflop grading comes in the next update.'}
                     </p>
                   )}
                 </div>
@@ -127,3 +128,15 @@ export function HandReview({ record, onNext, nextLabel = 'Next hand' }: { record
   )
 }
 
+
+/** "Equity ≈ 34% vs 1 player · a call needed 25%", colored by whether it was enough. */
+export function EquityLine({ eq, live = false }: { eq: { value: number; needed: number | null; opponents: number }; live?: boolean }) {
+  const pct = (x: number) => `${Math.round(x * 100)}%`
+  const enough = eq.needed === null ? null : eq.value >= eq.needed
+  return (
+    <p className={`equity-line small ${enough === null ? '' : enough ? 'up' : 'down'}`}>
+      Equity ≈ {pct(eq.value)} vs {eq.opponents === 1 ? 'their' : `${eq.opponents} players'`} likely hands
+      {eq.needed !== null && <> · {live ? 'a call needs' : 'a call needed'} {pct(eq.needed)}</>}
+    </p>
+  )
+}

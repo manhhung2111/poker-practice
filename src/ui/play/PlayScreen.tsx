@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useRef, useState } from 'react'
-import { decide } from '../../core/bots/brain'
+import { type SpotEquity, decide, readEquity } from '../../core/bots/brain'
 import { STYLES } from '../../core/bots/personality'
 import type { Chart } from '../../core/charts'
 import { type Decision, type HandState, act, legalActions, potSize } from '../../core/engine/game'
@@ -11,7 +11,7 @@ import { DEFAULT_CHARTS } from '../../data/charts'
 import { addHand, loadHands } from '../../storage/answers'
 import { PlayingCard } from '../components/PlayingCard'
 import { safeStorage } from '../storage'
-import { HandReview } from './HandReview'
+import { EquityLine, HandReview } from './HandReview'
 import { MiniCard } from './MiniCard'
 import { type PlaySettings, BOT_DELAY, loadPlaySettings, savePlaySettings } from './playSettings'
 import { bb, quickSizes } from './sizes'
@@ -51,6 +51,8 @@ export function PlayScreen({ charts, active, onLogAnswer }: Props) {
   const [raising, setRaising] = useState(false)
   const [raiseTo, setRaiseTo] = useState(0)
   const [note, setNote] = useState<string | null>(null)
+  /** Equity hint for the current decision, keyed by the number of actions so far. */
+  const [hint, setHint] = useState<{ at: number; eq: SpotEquity } | null>(null)
 
   // Refs mirror state for timers and multi-step updates.
   const handRef = useRef<HandState | null>(null)
@@ -60,6 +62,19 @@ export function PlayScreen({ charts, active, onLogAnswer }: Props) {
   const turnStart = useRef(Date.now())
   sessionRef.current = session
   const hero = session.heroSeat
+  const hintRef = useRef(hint)
+  hintRef.current = hint
+
+  /** Your equity right now against everyone's likely hands (after the flop). */
+  const heroEquity = useCallback(
+    (state: HandState, iterations: number): SpotEquity => {
+      const cached = hintRef.current
+      if (cached && cached.at === state.actions.length) return cached.eq
+      const table = sessionRef.current.seats.map((x) => x.personality)
+      return readEquity(state, sessionRef.current.heroSeat, DEFAULT_CHARTS, table, Math.random, iterations)
+    },
+    [],
+  )
 
   useEffect(() => safeStorage.set(SESSION_KEY, JSON.stringify(session)), [session])
   useEffect(() => savePlaySettings(settings), [settings])
@@ -92,6 +107,8 @@ export function PlayScreen({ charts, active, onLogAnswer }: Props) {
     setSession(s)
     startStacks.current = h.players.map((p) => p.stack + p.committed)
     decisions.current = []
+    hintRef.current = null
+    setHint(null)
     handRef.current = h
     setHand(h)
     setRecord(null)
@@ -116,6 +133,10 @@ export function PlayScreen({ charts, active, onLogAnswer }: Props) {
       const mine = next.actions.filter((a) => a.seat === hero)
       const p = state.players[hero]
       const dec: HeroDecision = { street: state.street, label: heroLabel(mine[mine.length - 1]), situation, board: [...state.board] }
+      if (state.street !== 'preflop' && !auto) {
+        const eq = heroEquity(state, 1200)
+        dec.equity = { value: eq.equity, needed: eq.needed, opponents: eq.opponents }
+      }
       if (graded) {
         dec.graded = {
           chartId: graded.spot.chart.id,
@@ -149,7 +170,7 @@ export function PlayScreen({ charts, active, onLogAnswer }: Props) {
       setRaising(false)
       commit(next)
     },
-    [commit, charts, hero, onLogAnswer],
+    [commit, charts, hero, onLogAnswer, heroEquity],
   )
 
   // Drive the bots (and auto-folds) one step at a time.
@@ -173,7 +194,12 @@ export function PlayScreen({ charts, active, onLogAnswer }: Props) {
       // Instant mode (or you've folded): play bots until it's your turn or the hand ends.
       do {
         const seat = state.toAct!
-        const d = decide(state, { charts: DEFAULT_CHARTS, personality: s.seats[seat].personality!, rng: Math.random })
+        const d = decide(state, {
+          charts: DEFAULT_CHARTS,
+          personality: s.seats[seat].personality!,
+          rng: Math.random,
+          table: s.seats.map((x) => x.personality),
+        })
         state = act(state, d)
       } while ((delay === 0) && state.toAct !== null && state.toAct !== hero)
       commit(state)
@@ -181,6 +207,14 @@ export function PlayScreen({ charts, active, onLogAnswer }: Props) {
     const t = setTimeout(step, delay)
     return () => clearTimeout(t)
   }, [hand, active, view, hero, settings, charts, commit, heroAct])
+
+  // Work out the equity hint when it's your turn after the flop.
+  useEffect(() => {
+    if (!settings.equity || !hand || hand.toAct !== hero || hand.street === 'preflop' || view !== 'table') return
+    if (hintRef.current?.at === hand.actions.length) return
+    const t = setTimeout(() => setHint({ at: hand.actions.length, eq: heroEquity(hand, 2000) }), 30)
+    return () => clearTimeout(t)
+  }, [hand, hero, settings.equity, view, heroEquity])
 
   const legal = hand && hand.toAct === hero && !hand.result ? legalActions(hand) : null
   const sizes = legal && legal.canRaise && hand ? quickSizes(hand, legal) : []
@@ -252,6 +286,12 @@ export function PlayScreen({ charts, active, onLogAnswer }: Props) {
                     ? 'You folded. Finishing the hand…'
                     : `${hand!.players[hand!.toAct!].name} is thinking…`)}
           </p>
+          {legal && settings.equity && hand!.street !== 'preflop' &&
+            (hint?.at === hand!.actions.length ? (
+              <EquityLine eq={{ value: hint.eq.equity, needed: hint.eq.needed, opponents: hint.eq.opponents }} live />
+            ) : (
+              <p className="equity-line small muted">Reading their likely hands…</p>
+            ))}
           {legal && settings.hints && legal.toCall > 0 && (
             <p className="hint">
               Pot odds: call {bb(legal.callAmount)} to win {bb(potSize(hand!))}. You need{' '}
@@ -449,6 +489,16 @@ function PlaySettingsView({
           <span>
             <strong>Show pot odds</strong>
             <small>When facing a bet, show how much equity you need to call.</small>
+          </span>
+        </label>
+        <label className="toggle">
+          <input id="equity" type="checkbox" checked={settings.equity} onChange={(e) => onChange({ ...settings, equity: e.target.checked })} />
+          <span>
+            <strong>Show equity</strong>
+            <small>
+              After the flop, show your chance of winning against the hands your opponents likely hold, judged from how
+              they played. An estimate, not an exact answer.
+            </small>
           </span>
         </label>
         <button type="button" className="secondary" onClick={onNewTable}>

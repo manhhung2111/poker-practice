@@ -46,7 +46,7 @@ describe('legalize', () => {
 })
 
 /** Plays many hands with bots in every seat; returns per-personality preflop stats. */
-function simulate(hands: number, seed: number) {
+function simulate(hands: number, seed: number, thinking = false) {
   const rng = seededRng(seed)
   const seats: Personality[] = Array.from({ length: 9 }, (_, i) => PERSONALITIES[i % 4])
   const stats = Object.fromEntries(PERSONALITIES.map((p) => [p, { hands: 0, vpip: 0, pfr: 0 }])) as Record<
@@ -62,7 +62,7 @@ function simulate(hands: number, seed: number) {
     let steps = 0
     while (s.toAct !== null) {
       const seat = s.toAct
-      const d = decide(s, { charts: DEFAULT_CHARTS, personality: seats[seat], rng })
+      const d = decide(s, { charts: DEFAULT_CHARTS, personality: seats[seat], rng, ...(thinking ? { table: seats } : {}) })
       expect(() => legalActions(s)).not.toThrow()
       s = act(s, d)
       if (++steps > 300) throw new Error('hand did not end')
@@ -99,4 +99,32 @@ describe('bot tables', () => {
     expect(vpip('maniac')).toBeGreaterThan(0.25)
     expect(vpip('fish')).toBeGreaterThan(0.25)
   }, 120_000)
+})
+
+describe('thinking regulars (equity after the flop)', () => {
+  const tableCtx = (seed = 3) => ({ ...ctx('regular', seed), table: ['nit', 'nit', 'regular', 'nit', 'nit', 'nit', 'nit', 'nit', 'nit'] as Personality[] })
+  /** BTN (seat 0) opens, SB folds, BB (seat 2) calls; flop dealt, BB checks, BTN bets `bet`. */
+  const facingBet = (bbHole: [Card, Card], board: string, bet: number) => {
+    let s = startHand({ names, stacks: Array(9).fill(1000), button: 0, deck: stackDeck(9, 0, { 0: ['As', 'Ks'], 2: bbHole }, board.split(' ') as Card[]) })
+    s = play(s, ...Array(6).fill(fold), { type: 'raise', to: 25 }, fold, { type: 'call' }, { type: 'check' }, { type: 'raise', to: bet })
+    expect(s.toAct).toBe(2)
+    return s
+  }
+
+  it('calls a small bet with a flush draw', () => {
+    expect(decide(facingBet(['8h', '6h'], 'Kh 7h 2c 9s 4d', 10), tableCtx()).type).not.toBe('fold')
+  })
+
+  it('folds a missed hand to a nit\'s pot-sized bet', () => {
+    expect(decide(facingBet(['7c', '3d'], 'Ks Qd 2c 9s 4d', 55), tableCtx()).type).toBe('fold')
+  })
+
+  it('never folds the nuts', () => {
+    const d = decide(facingBet(['Kd', 'Kc'], 'Ks Qd 2c 9s 4d', 55), tableCtx())
+    expect(['call', 'raise']).toContain(d.type)
+  })
+
+  it('play legal hands that conserve chips', () => {
+    simulate(150, 11, true)
+  }, 60_000)
 })

@@ -4,6 +4,9 @@ import { type Decision, type HandState, type LegalActions, BB, legalActions, pot
 import { handClassOf } from '../hands'
 import type { Rng } from '../random'
 import { topPercent } from '../strength'
+import { boardTexture } from '../boardTexture'
+import { equity } from '../equity/equity'
+import { estimateRange, replay } from '../equity/ranges'
 import { readHand } from './handRead'
 import { type Personality, STYLES, type Style } from './personality'
 
@@ -12,13 +15,24 @@ export interface BotContext {
   charts: readonly Chart[]
   personality: Personality
   rng: Rng
+  /**
+   * Styles of everyone at the table by seat (null = you, read as a regular). When given,
+   * regulars think in equity after the flop: they estimate each opponent's range from
+   * the actions so far and compare their equity with the price (design §9.3).
+   */
+  table?: readonly (Personality | null)[]
 }
 
 /** Decides for the player whose turn it is. Always returns a legal decision. */
 export function decide(state: HandState, ctx: BotContext): Decision {
   const legal = legalActions(state)
   const style = STYLES[ctx.personality]
-  const wish = state.street === 'preflop' ? preflop(state, legal, style, ctx) : postflop(state, legal, style, ctx.rng)
+  const wish =
+    state.street === 'preflop'
+      ? preflop(state, legal, style, ctx)
+      : ctx.table && style.thinksInEquity
+        ? postflopEquity(state, legal, style, ctx)
+        : postflop(state, legal, style, ctx.rng)
   return legalize(wish, legal)
 }
 
@@ -169,7 +183,11 @@ function postflop(state: HandState, legal: LegalActions, style: Style, rng: Rng)
   if (legal.canCheck) {
     if (valueHand && rng() < style.valueBet) return bet(read.made === 'monster' ? 0.75 : 0.6)
     const firstToBetFlop = state.street === 'flop' && iAmAggressor
-    if (firstToBetFlop && rng() < style.cbet / Math.max(1, opponents)) return bet(0.4)
+    if (firstToBetFlop) {
+      const texture = boardTexture(state.board).wetness
+      const cbet = style.cbet * (texture === 'dry' ? 1.25 : texture === 'wet' ? 0.7 : 1)
+      if (rng() < cbet / Math.max(1, opponents)) return bet(texture === 'dry' ? 0.33 : 0.5)
+    }
     if (draw && rng() < style.semiBluff / Math.max(1, opponents - 0.5)) return bet(0.55)
     return { type: 'check' }
   }
@@ -184,6 +202,79 @@ function postflop(state: HandState, legal: LegalActions, style: Style, rng: Rng)
   if (read.strength >= price + 0.08 + style.callMargin) return { type: 'call' }
   // Fish call with any pair.
   if (style.callMargin < -0.1 && read.made !== 'nothing') return { type: 'call' }
+  return { type: 'fold' }
+}
+
+export interface SpotEquity {
+  /** Share of the pot this player wins on average against everyone's likely hands. */
+  equity: number
+  /** Equity needed to call (pot odds), or null when not facing a bet. */
+  needed: number | null
+  opponents: number
+}
+
+/**
+ * Equity of `seat` against the likely hands of everyone still in, judged from the
+ * actions so far (each player modeled by their style; you are read as a regular).
+ * Used by thinking bots, the equity hint, and the hand review.
+ */
+export function readEquity(
+  state: HandState,
+  seat: number,
+  charts: readonly Chart[],
+  table: readonly (Personality | null)[] | undefined,
+  rng: Rng,
+  iterations = 400,
+): SpotEquity {
+  const me = state.players[seat]
+  const history = replay(state)
+  const simple = (s: HandState, personality: Personality, r: Rng) => decide(s, { charts, personality, rng: r })
+  const live = state.players.filter((p) => !p.folded && p.seat !== seat)
+  const ranges = live.map((p) =>
+    estimateRange(history, p.seat, table?.[p.seat] ?? 'regular', simple, {
+      dead: [...me.hole, ...state.board],
+      postflopSamples: 2,
+      preflopSamples: 4,
+    }),
+  )
+  const eq = equity(me.hole, ranges, state.board, { iterations, rng }).equity
+  let needed: number | null = null
+  if (state.toAct === seat) {
+    const legal = legalActions(state)
+    if (legal.toCall > 0) needed = legal.callAmount / (potSize(state) + legal.callAmount)
+  }
+  return { equity: eq, needed, opponents: live.length }
+}
+
+function postflopEquity(state: HandState, legal: LegalActions, style: Style, ctx: BotContext): Decision {
+  const rng = ctx.rng
+  const me = state.players[legal.seat]
+  const eq = readEquity(state, legal.seat, ctx.charts, ctx.table, rng).equity
+  const read = readHand(me.hole, state.board)
+  const pot = potSize(state)
+  const opponents = state.players.filter((p) => !p.folded && p.seat !== me.seat).length
+  const iAmAggressor = preflopSituation(state).lastRaiser === me.seat
+  const draw = state.board.length < 5 && (read.flushDraw || read.openEnded)
+  const texture = boardTexture(state.board).wetness
+  const bet = (fraction: number): Decision => ({ type: 'raise', to: me.bet + Math.max(BB, Math.round(pot * fraction)) })
+
+  if (legal.canCheck) {
+    // Value: ahead of what they're likely to hold. Bigger on wet boards (charge the draws).
+    if (eq >= 0.62 && rng() < style.valueBet) return bet(eq >= 0.8 || texture === 'wet' ? 0.75 : 0.55)
+    if (state.street === 'flop' && iAmAggressor && opponents <= 2) {
+      const cbet = style.cbet * (texture === 'dry' ? 1.3 : texture === 'wet' ? 0.6 : 1)
+      if (rng() < cbet / opponents) return bet(texture === 'dry' ? 0.33 : 0.5)
+    }
+    if (draw && rng() < style.semiBluff / Math.max(1, opponents - 0.5)) return bet(0.55)
+    return { type: 'check' }
+  }
+
+  // Facing a bet: call when equity beats the price (draws get a little extra for implied odds).
+  const price = legal.callAmount / (pot + legal.callAmount)
+  if (eq >= 0.8 && rng() < style.raiseMonster) return { type: 'raise', to: state.currentBet * 3 }
+  if (eq >= 0.68 && rng() < style.raiseStrong) return { type: 'raise', to: state.currentBet * 3 }
+  const implied = draw ? 0.05 : 0
+  if (eq + implied >= price + style.callMargin + 0.02) return { type: 'call' }
   return { type: 'fold' }
 }
 
