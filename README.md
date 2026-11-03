@@ -49,6 +49,9 @@ npm install
   - `personality.ts`: Nit 🧊 / Regular 🎯 / Fish 🐟 / Maniac 🔥 settings
   - `handRead.ts`: postflop hand strength and draws
   - `brain.ts`: preflop from the default charts + personality, postflop from strength vs pot odds
+- `src/core/table.ts`: table session (you + 8 bots, button, rebuys), mapping your preflop decisions to chart spots for grading, trivial-fold detection
+- `src/core/handRecord.ts`: saved hands (players, actions, result, your graded decisions)
+- `src/ui/play/`: Play tab (table, bet sizing, hand review, history, settings)
 - `src/data/lessons/*.md`: the 5 lessons (edit freely; `[[term-id]]` links the glossary)
 - `src/data/glossary.json`: glossary terms; `match` phrases are auto-linked in app text
 - `src/data/ranges/`: the 25 default charts (JSON); `src/data/charts.test.ts` holds the chart sanity checks
@@ -69,7 +72,9 @@ npm install
 **Phase 1 is complete.**
 
 - [x] M7: Game engine and bots (logic only)
-- [ ] M8: Table screen vs bots, preflop grading, hand review
+- [x] M8: Table screen vs bots, preflop grading, hand review
+- [ ] M9: Equity calculator, postflop bot logic, equity hint
+- [ ] M10: Postflop grading, lessons 6–7
 
 Testing tip: open the app with `#unlock-all` at the end of the URL to unlock every lesson.
 

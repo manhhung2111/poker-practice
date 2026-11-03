@@ -27,11 +27,12 @@ import { TermSheet } from './ui/learn/TermSheet'
 import { ChartDetail } from './ui/screens/ChartDetail'
 import { ChartEditor } from './ui/screens/ChartEditor'
 import { ChartList } from './ui/screens/ChartList'
+import { PlayScreen } from './ui/play/PlayScreen'
 import { StatsScreen } from './ui/stats/StatsScreen'
 import { safeStorage } from './ui/storage'
 import { addAnswer, loadAnswers, replaceAnswers } from './storage/answers'
 
-type Tab = 'drill' | 'stats' | 'learn'
+type Tab = 'drill' | 'play' | 'stats' | 'learn'
 type LearnView =
   | { kind: 'home' }
   | { kind: 'lesson'; id: string }
@@ -54,6 +55,16 @@ const TABS: { id: Tab; label: string; icon: JSX.Element }[] = [
       <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" aria-hidden="true">
         <rect x="4" y="3" width="11" height="16" rx="2" />
         <path d="M9 21h8a2 2 0 0 0 2-2V7" />
+      </svg>
+    ),
+  },
+  {
+    id: 'play',
+    label: 'Play',
+    icon: (
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" aria-hidden="true">
+        <ellipse cx="12" cy="12" rx="10" ry="7" />
+        <circle cx="12" cy="12" r="2.5" />
       </svg>
     ),
   },
@@ -114,7 +125,7 @@ const readUnlockAll = () => typeof location !== 'undefined' && location.hash ===
 export default function App() {
   const [tab, setTab] = useState<Tab>(() => {
     const saved = safeStorage.get(TAB_KEY)
-    return saved === 'drill' || saved === 'stats' || saved === 'learn' ? saved : 'learn'
+    return saved === 'drill' || saved === 'play' || saved === 'stats' || saved === 'learn' ? saved : 'learn'
   })
   const [settings, setSettings] = useState(loadSettings)
   const [progress, setProgress] = useState(loadProgress)
@@ -163,25 +174,12 @@ export default function App() {
     return () => clearTimeout(t)
   }, [banner])
 
-  const onAnswer = useCallback((spot: Spot, grade: Grade, ms: number) => {
-    const entry: AnswerLog = {
-      at: Date.now(),
-      chartId: spot.chart.id,
-      type: spot.type,
-      hero: spot.hero,
-      ...(spot.villain ? { villain: spot.villain } : {}),
-      hand: spot.hand,
-      chosen: grade.chosen,
-      best: grade.best,
-      correct: grade.correct,
-      severity: grade.severity,
-      ms,
-      source: 'drill',
-    }
+  /** Saves a graded decision from a drill or a played hand: stats, review queue, lesson progress. */
+  const logAnswer = useCallback((entry: AnswerLog) => {
     setAnswers((prev) => [...prev, entry])
     void addAnswer(entry)
     setProgress((prev) => {
-      const r = recordAnswer(prev, LESSONS, spot.type, spot.hero, grade.correct)
+      const r = recordAnswer(prev, LESSONS, entry.type, entry.hero, entry.correct)
       if (r.passed.length) {
         const passed = LESSONS.find((l) => l.id === r.passed[r.passed.length - 1])!
         const next = LESSONS.find((l) => l.number === passed.number + 1)
@@ -194,6 +192,25 @@ export default function App() {
       return r.state
     })
   }, [])
+
+  const onAnswer = useCallback(
+    (spot: Spot, grade: Grade, ms: number) =>
+      logAnswer({
+        at: Date.now(),
+        chartId: spot.chart.id,
+        type: spot.type,
+        hero: spot.hero,
+        ...(spot.villain ? { villain: spot.villain } : {}),
+        hand: spot.hand,
+        chosen: grade.chosen,
+        best: grade.best,
+        correct: grade.correct,
+        severity: grade.severity,
+        ms,
+        source: 'drill',
+      }),
+    [logAnswer],
+  )
 
   const onImport = (data: BackupData) => {
     setAnswers(data.answers)
@@ -333,6 +350,10 @@ export default function App() {
               onStart={() => startDrill(settings)}
             />
           )}
+        </div>
+        {/* Kept mounted while hidden, so a hand in progress survives tab switches; bots pause. */}
+        <div hidden={tab !== 'play'}>
+          <PlayScreen charts={charts} active={tab === 'play'} onLogAnswer={logAnswer} />
         </div>
         {tab === 'stats' && (
           <StatsScreen

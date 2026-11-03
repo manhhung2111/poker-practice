@@ -336,6 +336,19 @@ time to answer, and source (drill or play).
 - Optional "skip trivial folds", off by default and can be turned on.
 - Optional live hints (pot odds, equity), off by default.
 
+### 9.5.1 As built (M8)
+- Play tab is open from the start (not locked behind lessons 6–7, which arrive in M10).
+- You sit in seat 0 with 8 bots (at least one of each style); the button rotates. You
+  rebuy automatically when busted; bots reload below 40bb. Your table result is shown in
+  the header and kept between visits.
+- Preflop decisions are graded only in spots the charts describe: folded to you, one open
+  with no limpers or callers, or a 3-bet of your own open with no callers. Graded
+  decisions go into stats, the review queue and lesson progress (source "play").
+- Bot speed: normal / fast / instant. Once you fold, the rest of the hand plays instantly.
+- Quick sizes: standard preflop sizes (§3), ⅓–pot postflop, 2.5×/3×/pot raises, all-in,
+  plus a slider. Tap a bot to see its style.
+- The last 200 hands are saved on the device (IndexedDB) with a review for each.
+
 ### 9.6 Hand review and history
 
 ```

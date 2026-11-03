@@ -1664,3 +1664,478 @@ code {
   border-radius: 4px;
   background: var(--surface-2);
 }
+
+/* ---------- Play: table ---------- */
+
+.play {
+  display: grid;
+  gap: 8px;
+  padding-bottom: 150px; /* room for the action bar / bet panel */
+}
+
+.icon-button {
+  background: none;
+  border: 0;
+  padding: 6px;
+  color: var(--muted);
+  cursor: pointer;
+  display: grid;
+  place-items: center;
+}
+
+.progress.up {
+  color: var(--call);
+}
+
+.progress.down {
+  color: var(--sev-blunder);
+}
+
+.poker-table {
+  position: relative;
+  width: 100%;
+  max-width: 100%;
+  aspect-ratio: 1 / 1.02;
+  max-height: 56vh;
+  margin-inline: auto;
+}
+
+.felt-oval {
+  position: absolute;
+  inset: 12% 10%;
+  border-radius: 50%;
+  background: radial-gradient(ellipse at 50% 40%, color-mix(in oklab, var(--felt-table) 80%, white), var(--felt-table) 70%);
+  border: 6px solid var(--felt-line);
+  box-shadow: inset 0 0 30px rgb(0 0 0 / 0.35);
+}
+
+.table-center {
+  position: absolute;
+  left: 50%;
+  top: 47%;
+  transform: translate(-50%, -50%);
+  display: grid;
+  justify-items: center;
+  gap: 6px;
+}
+
+.board {
+  display: flex;
+  gap: 3px;
+}
+
+.pot {
+  font-family: var(--font-display);
+  font-weight: 600;
+  color: var(--card-face);
+  background: rgb(0 0 0 / 0.3);
+  padding: 1px 10px;
+  border-radius: 999px;
+  font-variant-numeric: tabular-nums;
+}
+
+.mini-card {
+  display: inline-grid;
+  grid-auto-flow: column;
+  align-items: center;
+  gap: 1px;
+  min-width: 1.75em;
+  height: 2.4em;
+  padding: 0 3px;
+  border-radius: 4px;
+  background: var(--card-face);
+  color: var(--card-ink);
+  font-family: var(--font-display);
+  font-weight: 700;
+  font-size: clamp(11px, 3.2vw, 14px);
+  line-height: 1;
+  justify-content: center;
+  vertical-align: middle;
+  box-shadow: 0 1px 2px rgb(0 0 0 / 0.3);
+}
+
+.mini-card.red {
+  color: var(--card-red);
+}
+
+.mini-card.slot {
+  background: rgb(255 255 255 / 0.08);
+  box-shadow: none;
+  border: 1px dashed rgb(255 255 255 / 0.18);
+}
+
+.mini-card.back {
+  min-width: 1.2em;
+  height: 1.7em;
+  background: repeating-linear-gradient(45deg, #7a1f1f 0 3px, #9b2c2c 3px 6px);
+  border: 1.5px solid var(--card-face);
+}
+
+.seat {
+  position: absolute;
+  transform: translate(-50%, -50%);
+  display: grid;
+  justify-items: center;
+  gap: 1px;
+  min-width: 4.6rem;
+  padding: 3px 6px 4px;
+  border-radius: 10px;
+  border: 1px solid var(--line);
+  background: var(--surface);
+  color: var(--fg);
+  font-size: 11px;
+  line-height: 1.2;
+  cursor: pointer;
+  z-index: 2;
+}
+
+.seat.me {
+  background: var(--accent);
+  border-color: var(--accent);
+  color: var(--accent-fg);
+  cursor: default;
+}
+
+.seat.folded {
+  opacity: 0.4;
+}
+
+.seat.acting {
+  box-shadow: 0 0 0 2px var(--highlight);
+  animation: pulse 1.2s ease-in-out infinite;
+}
+
+.seat.winner {
+  box-shadow: 0 0 0 3px var(--call);
+}
+
+.seat-name {
+  font-weight: 600;
+  white-space: nowrap;
+}
+
+.seat-stack {
+  font-variant-numeric: tabular-nums;
+  opacity: 0.85;
+  white-space: nowrap;
+}
+
+.seat-cards {
+  display: flex;
+  gap: 2px;
+}
+
+.seat-cards .mini-card:not(.back) {
+  font-size: 11px;
+}
+
+.seat-action {
+  position: absolute;
+  top: -0.9rem;
+  white-space: nowrap;
+  padding: 0 6px;
+  border-radius: 999px;
+  background: var(--surface-2);
+  border: 1px solid var(--line);
+  color: var(--fg);
+  font-weight: 600;
+  font-size: 10px;
+}
+
+.seat-action.raise,
+.seat-action.bet {
+  background: var(--raise);
+  border-color: var(--raise);
+  color: var(--on-action);
+}
+
+.seat-action.call {
+  background: var(--call);
+  border-color: var(--call);
+  color: var(--on-action);
+}
+
+.bet-chip {
+  position: absolute;
+  transform: translate(-50%, -50%);
+  z-index: 1;
+  padding: 0 6px;
+  border-radius: 999px;
+  background: rgb(0 0 0 / 0.45);
+  color: var(--card-face);
+  font-size: 11px;
+  font-weight: 600;
+  font-variant-numeric: tabular-nums;
+  white-space: nowrap;
+}
+
+.bet-chip::before {
+  content: '';
+  display: inline-block;
+  width: 8px;
+  height: 8px;
+  margin-right: 4px;
+  border-radius: 50%;
+  background: var(--accent);
+}
+
+.dealer-button {
+  position: absolute;
+  transform: translate(-50%, -50%);
+  width: 20px;
+  height: 20px;
+  border-radius: 50%;
+  display: grid;
+  place-items: center;
+  background: var(--card-face);
+  color: var(--card-ink);
+  font-family: var(--font-display);
+  font-weight: 700;
+  font-size: 12px;
+  z-index: 1;
+  box-shadow: 0 1px 3px rgb(0 0 0 / 0.4);
+}
+
+.hero-area {
+  display: grid;
+  justify-items: center;
+  gap: 4px;
+}
+
+.hole.small .playing-card {
+  width: min(19vw, 76px);
+  padding: 5px 7px;
+}
+
+.hole.small .playing-card .rank {
+  font-size: clamp(1.3rem, 6vw, 1.8rem);
+}
+
+.hole.small .playing-card .suit {
+  font-size: clamp(1.6rem, 8vw, 2.4rem);
+}
+
+.status-line {
+  margin: 0;
+  min-height: 1.5em;
+  text-align: center;
+  color: var(--muted);
+}
+
+.hero-area .hint {
+  text-align: center;
+}
+
+.action.check {
+  background: var(--surface-2);
+  color: var(--fg);
+  border: 1px solid var(--line);
+}
+
+.bet-panel {
+  position: fixed;
+  left: 0;
+  right: 0;
+  bottom: calc(var(--tabbar-h) + env(safe-area-inset-bottom, 0px));
+  z-index: 4;
+  max-width: 560px;
+  margin: 0 auto;
+  display: grid;
+  gap: 8px;
+  padding: 10px max(16px, env(safe-area-inset-right, 0px)) 10px max(16px, env(safe-area-inset-left, 0px));
+  background: var(--surface);
+  border-top: 1px solid var(--line);
+}
+
+.size-chips {
+  display: grid;
+  grid-auto-flow: column;
+  grid-auto-columns: 1fr;
+  gap: 6px;
+}
+
+.size-chips .chip {
+  display: grid;
+  min-height: 44px;
+  font-size: var(--step-0);
+  padding: 2px;
+}
+
+.size-chips .chip small {
+  font-family: var(--font-body);
+  font-size: 0.7rem;
+  opacity: 0.8;
+}
+
+.slider input {
+  width: 100%;
+  accent-color: var(--accent);
+}
+
+.bet-confirm {
+  display: grid;
+  grid-template-columns: 1fr 2fr;
+  gap: 8px;
+}
+
+/* ---------- Play: review, history, settings ---------- */
+
+.review {
+  display: grid;
+  gap: 14px;
+}
+
+.review-head {
+  display: grid;
+  gap: 6px;
+}
+
+.review-head h2 {
+  font-size: var(--step-2);
+}
+
+.review-head h2.won {
+  color: var(--call);
+}
+
+.review-head h2.lost {
+  color: var(--sev-blunder);
+}
+
+.review .eyebrow,
+.review-board {
+  margin: 0;
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 4px;
+}
+
+.pots,
+.shown,
+.decisions,
+.history ul {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: grid;
+  gap: 4px;
+}
+
+.shown li {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto minmax(0, 1.4fr);
+  align-items: center;
+  gap: 8px;
+  font-size: var(--step--1);
+}
+
+.review h3 {
+  font-family: var(--font-display);
+  font-size: var(--step-1);
+  margin: 0 0 6px;
+}
+
+.decisions li {
+  display: grid;
+  grid-template-columns: 4.2rem minmax(0, 1fr);
+  gap: 8px;
+  padding: 8px 0;
+  border-top: 1px solid var(--line);
+}
+
+.decisions p {
+  margin: 0;
+}
+
+.decisions .small {
+  font-size: var(--step--1);
+}
+
+.street-tag {
+  align-self: start;
+  justify-self: start;
+  padding: 1px 6px;
+  border-radius: 4px;
+  background: var(--surface-2);
+  font-family: var(--font-display);
+  font-size: var(--step--1);
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+}
+
+.history summary {
+  cursor: pointer;
+  font-weight: 600;
+  color: var(--accent);
+}
+
+.history-street {
+  margin-top: 8px;
+  font-size: var(--step--1);
+}
+
+.hand-row {
+  width: 100%;
+  display: grid;
+  grid-template-columns: auto auto minmax(0, 1fr) auto;
+  align-items: center;
+  gap: 8px;
+  padding: 10px 12px;
+  background: none;
+  border: 0;
+  text-align: left;
+  cursor: pointer;
+}
+
+.hand-row .muted {
+  font-size: var(--step--1);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.hand-cards {
+  display: flex;
+  gap: 2px;
+}
+
+.net {
+  font-variant-numeric: tabular-nums;
+  font-weight: 600;
+}
+
+.net.up {
+  color: var(--call);
+}
+
+.net.down {
+  color: var(--sev-blunder);
+}
+
+.toggle {
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr);
+  gap: 10px;
+  align-items: start;
+  padding: 10px 12px;
+  border: 1px solid var(--line);
+  border-radius: var(--radius);
+  background: var(--surface);
+  cursor: pointer;
+}
+
+.toggle input {
+  width: 20px;
+  height: 20px;
+  margin-top: 2px;
+  accent-color: var(--accent);
+}
+
+.toggle span {
+  display: grid;
+}
+
+.toggle small {
+  color: var(--muted);
+}

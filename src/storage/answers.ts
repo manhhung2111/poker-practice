@@ -1,3 +1,4 @@
+import type { HandRecord } from '../core/handRecord'
 import type { AnswerLog } from '../core/log'
 
 /**
@@ -7,6 +8,9 @@ import type { AnswerLog } from '../core/log'
  */
 const DB = 'poker-trainer'
 const STORE = 'answers'
+const HANDS = 'hands'
+/** Played hands kept on the device. */
+export const MAX_HANDS = 200
 
 let dbPromise: Promise<IDBDatabase | null> | null = null
 
@@ -15,8 +19,13 @@ function open(): Promise<IDBDatabase | null> {
   dbPromise = new Promise((resolve) => {
     try {
       if (typeof indexedDB === 'undefined') return resolve(null)
-      const req = indexedDB.open(DB, 1)
-      req.onupgradeneeded = () => req.result.createObjectStore(STORE, { autoIncrement: true })
+      // v1: answers. v2: + played hands.
+      const req = indexedDB.open(DB, 2)
+      req.onupgradeneeded = () => {
+        const db = req.result
+        if (!db.objectStoreNames.contains(STORE)) db.createObjectStore(STORE, { autoIncrement: true })
+        if (!db.objectStoreNames.contains(HANDS)) db.createObjectStore(HANDS, { autoIncrement: true })
+      }
       req.onsuccess = () => resolve(req.result)
       req.onerror = () => resolve(null)
       req.onblocked = () => resolve(null)
@@ -27,14 +36,18 @@ function open(): Promise<IDBDatabase | null> {
   return dbPromise
 }
 
-function run<T>(mode: IDBTransactionMode, fn: (store: IDBObjectStore) => IDBRequest<T> | void): Promise<T | undefined> {
+function run<T>(
+  mode: IDBTransactionMode,
+  fn: (store: IDBObjectStore) => IDBRequest<T> | void,
+  storeName: string = STORE,
+): Promise<T | undefined> {
   return open().then(
     (db) =>
       new Promise((resolve) => {
         if (!db) return resolve(undefined)
         try {
-          const tx = db.transaction(STORE, mode)
-          const req = fn(tx.objectStore(STORE))
+          const tx = db.transaction(storeName, mode)
+          const req = fn(tx.objectStore(storeName))
           tx.oncomplete = () => resolve(req ? req.result : undefined)
           tx.onerror = () => resolve(undefined)
           tx.onabort = () => resolve(undefined)
@@ -65,4 +78,45 @@ export function replaceAnswers(list: readonly AnswerLog[]): Promise<unknown> {
     s.clear()
     for (const a of list) s.add(a)
   })
+}
+
+/** Saves a played hand and drops the oldest beyond MAX_HANDS. */
+export function addHand(h: HandRecord): Promise<unknown> {
+  return run(
+    'readwrite',
+    (s) => {
+      s.add(h)
+      const count = s.count()
+      count.onsuccess = () => {
+        const extra = count.result - MAX_HANDS
+        if (extra <= 0) return
+        const cursor = s.openCursor()
+        let left = extra
+        cursor.onsuccess = () => {
+          const c = cursor.result
+          if (!c || left <= 0) return
+          c.delete()
+          left--
+          c.continue()
+        }
+      }
+    },
+    HANDS,
+  )
+}
+
+/** Played hands, newest first. */
+export async function loadHands(): Promise<HandRecord[]> {
+  const all = (await run<HandRecord[]>('readonly', (s) => s.getAll(), HANDS)) ?? []
+  return all.sort((a, b) => b.at - a.at)
+}
+
+export function clearHands(): Promise<unknown> {
+  return run(
+    'readwrite',
+    (s) => {
+      s.clear()
+    },
+    HANDS,
+  )
 }
