@@ -1,5 +1,8 @@
 import { useEffect, useState } from 'react'
 import { DEFAULT_CHARTS } from './data/charts'
+import { DrillScreen } from './ui/drill/DrillScreen'
+import { DrillSetup } from './ui/drill/DrillSetup'
+import { loadSettings, saveSettings } from './ui/drill/settings'
 import { ChartDetail } from './ui/screens/ChartDetail'
 import { ChartList } from './ui/screens/ChartList'
 import { safeStorage } from './ui/storage'
@@ -43,20 +46,33 @@ const TAB_KEY = 'poker-trainer:tab'
 export default function App() {
   const [tab, setTab] = useState<Tab>(() => {
     const saved = safeStorage.get(TAB_KEY)
-    return saved === 'drill' || saved === 'stats' || saved === 'learn' ? saved : 'learn'
+    return saved === 'drill' || saved === 'stats' || saved === 'learn' ? saved : 'drill'
   })
+  const [settings, setSettings] = useState(loadSettings)
+  const [drilling, setDrilling] = useState(false)
   const [chartId, setChartId] = useState<string | null>(null)
   const chart = DEFAULT_CHARTS.find((c) => c.id === chartId)
 
   useEffect(() => safeStorage.set(TAB_KEY, tab), [tab])
-  useEffect(() => window.scrollTo(0, 0), [tab, chartId])
+  useEffect(() => saveSettings(settings), [settings])
+  useEffect(() => window.scrollTo(0, 0), [tab, chartId, drilling])
 
   return (
     <>
       <main className="app">
-        {tab === 'drill' && (
-          <ComingSoon title="Drills" text="Open-or-fold drills arrive in the next milestone (M2). Browse the charts under Learn meanwhile." />
-        )}
+        {/* Kept mounted while hidden, so switching tabs doesn't lose a drill in progress. */}
+        <div hidden={tab !== 'drill'}>
+          {drilling ? (
+            <DrillScreen
+              charts={DEFAULT_CHARTS}
+              settings={settings}
+              active={tab === 'drill'}
+              onExit={() => setDrilling(false)}
+            />
+          ) : (
+            <DrillSetup settings={settings} onChange={setSettings} onStart={() => setDrilling(true)} />
+          )}
+        </div>
         {tab === 'stats' && (
           <ComingSoon title="Stats" text="Your accuracy by spot and position, plus a heatmap of the hands you miss, arrive in M5." />
         )}

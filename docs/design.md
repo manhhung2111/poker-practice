@@ -166,16 +166,22 @@ raise and call, raise wins; `mixed` entries override both.
 A fixed **hand strength ranking** of all 169 hands gives each hand a percentile. The
 ranking uses the Chen formula (unrounded; ties broken by pair, top card, suitedness,
 kicker), implemented in `src/core/strength.ts`. Percentiles are combo-weighted, out of
-1326 combos. For a wrong answer, severity is the percentile distance between your
-hand and the nearest edge of the correct action's range in that chart:
+1326 combos.
 
-| Distance | Rating |
+For a wrong answer (`src/core/grading.ts`):
+1. Find the nearest hand, by strength percentile, where the chosen action is correct.
+   That is the edge of the region your hand is in.
+2. **Depth** = that distance ÷ the size of the correct action's region. Folding QQ from
+   UTG is deep inside a small raise region; opening KJo from UTG is right at the edge.
+
+| Depth | Rating |
 |---|---|
-| ≤ 5% | 🟡 Close spot |
-| 5–20% | 🟠 Clear mistake |
-| > 20% | 🔴 Blunder |
+| ≤ 20% | 🟡 Close spot |
+| 20–45% | 🟠 Clear mistake |
+| > 45% | 🔴 Blunder |
 
-Thresholds live in one config value and are tuned during M2.
+Mixing up two ways of playing a hand (call vs raise) is capped at "clear mistake".
+Thresholds live in one constant and can be tuned from user feedback.
 
 ### 6.5 "Why" text
 Built from three layers, most specific first:
@@ -239,7 +245,8 @@ time to answer, and source (drill or play).
 
 ### 8.3 Dealing modes
 - **Smart (default):**
-  - ~60% hands near the edge of a range, where decisions are hard
+  - ~60% hands near the edge of a range, where decisions are hard (a hand is an
+    "edge" hand when a neighbouring grid cell, or the next pair for pairs, has a different action)
   - ~20% hands you missed before, on spaced repetition: they come back after ~3, ~10,
     ~30 hands, then rarely once answered right
   - ~20% random, so you keep seeing normal hands
