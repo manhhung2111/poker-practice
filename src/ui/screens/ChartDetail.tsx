@@ -8,7 +8,7 @@ import { Matchup } from '../components/Positions'
 import { CATEGORY_NAMES, SPOT_TITLES, handName, percent } from '../labels'
 import { RichText } from '../learn/RichText'
 
-export function ChartDetail({ chart, onBack }: { chart: Chart; onBack: () => void }) {
+export function ChartDetail({ chart, onBack, onEdit }: { chart: Chart; onBack: () => void; onEdit: () => void }) {
   const [selected, setSelected] = useState<HandClass | undefined>()
   const shares = actionShares(chart)
   const legend = ACTIONS.filter((a) => a === 'fold' || shares[a] > 0)
@@ -24,6 +24,7 @@ export function ChartDetail({ chart, onBack }: { chart: Chart; onBack: () => voi
       <div className="chart-meta">
         <span className="eyebrow">{SPOT_TITLES[chart.spot]}</span>
         <Matchup chart={chart} />
+        {chart.edited && <span className="severity clear">Edited</span>}
       </div>
       <p className="key-idea">
         <RichText text={chart.keyIdea} />
@@ -48,6 +49,10 @@ export function ChartDetail({ chart, onBack }: { chart: Chart; onBack: () => voi
           they look.
         </p>
       )}
+
+      <button type="button" className="secondary edit-button" onClick={onEdit}>
+        Edit ranges
+      </button>
     </>
   )
 }

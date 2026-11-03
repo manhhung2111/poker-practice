@@ -1,10 +1,14 @@
+import type { ChartDef } from './charts'
 import { type AnswerLog, parseLogEntry } from './log'
+import { type Overrides, parseOverrides } from './overrides'
 import { type ProgressState, parseProgress } from './progress'
 
-/** Everything a backup holds (design §8.4). Range edits join in M6. */
+/** Everything a backup holds (design §8.4). */
 export interface BackupData {
   answers: AnswerLog[]
   progress: ProgressState
+  /** Range edits per chart id. */
+  ranges: Overrides
 }
 
 const APP = 'poker-practice-trainer'
@@ -16,8 +20,11 @@ export function makeBackup(data: BackupData, now = Date.now()): string {
 
 export class BackupError extends Error {}
 
-/** Reads a backup file's text. Throws BackupError with a message the user can act on. */
-export function parseBackup(text: string): BackupData & { skipped: number } {
+/**
+ * Reads a backup file's text. Throws BackupError with a message the user can act on.
+ * `defs` are the app's chart definitions, used to validate range edits.
+ */
+export function parseBackup(text: string, defs: readonly ChartDef[] = []): BackupData & { skipped: number } {
   let raw: unknown
   try {
     raw = JSON.parse(text)
@@ -31,5 +38,10 @@ export function parseBackup(text: string): BackupData & { skipped: number } {
   }
   const list = Array.isArray(r.answers) ? r.answers : []
   const answers = list.map(parseLogEntry).filter((e): e is AnswerLog => e !== null)
-  return { answers: answers.sort((a, b) => a.at - b.at), progress: parseProgress(r.progress), skipped: list.length - answers.length }
+  return {
+    answers: answers.sort((a, b) => a.at - b.at),
+    progress: parseProgress(r.progress),
+    ranges: parseOverrides(r.ranges, defs),
+    skipped: list.length - answers.length,
+  }
 }

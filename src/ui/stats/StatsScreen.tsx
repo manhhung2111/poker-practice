@@ -1,6 +1,7 @@
 import { useMemo, useRef, useState } from 'react'
 import { BackupError, makeBackup, parseBackup, type BackupData } from '../../core/backup'
-import type { Chart } from '../../core/charts'
+import type { Chart, ChartDef } from '../../core/charts'
+import type { Overrides } from '../../core/overrides'
 import type { DrillSpot } from '../../core/dealing'
 import type { HandClass } from '../../core/hands'
 import type { AnswerLog } from '../../core/log'
@@ -27,6 +28,8 @@ interface Props {
   charts: readonly Chart[]
   lessons: readonly Lesson[]
   progress: ProgressState
+  ranges: Overrides
+  chartDefs: readonly ChartDef[]
   persistent: boolean
   queueSize: number
   onDrillWeak: () => void
@@ -245,7 +248,7 @@ function Heatmap({ answers, charts }: { answers: readonly AnswerLog[]; charts: r
   )
 }
 
-function BackupSection({ answers, progress, onImport, onReset }: Props) {
+function BackupSection({ answers, progress, ranges, chartDefs, onImport, onReset }: Props) {
   const [message, setMessage] = useState<string | null>(null)
   const [paste, setPaste] = useState('')
   const [shown, setShown] = useState<string | null>(null)
@@ -253,7 +256,7 @@ function BackupSection({ answers, progress, onImport, onReset }: Props) {
   const fileRef = useRef<HTMLInputElement>(null)
   const framed = typeof window !== 'undefined' && window.self !== window.top
 
-  const text = () => makeBackup({ answers: [...answers], progress })
+  const text = () => makeBackup({ answers: [...answers], progress, ranges })
 
   const copy = async () => {
     const t = text()
@@ -278,11 +281,11 @@ function BackupSection({ answers, progress, onImport, onReset }: Props) {
 
   const load = (raw: string) => {
     try {
-      const data = parseBackup(raw)
+      const data = parseBackup(raw, chartDefs)
       onImport(data)
       setPaste('')
       setMessage(
-        `Restored ${data.answers.length} hands and your lesson progress.${data.skipped ? ` Skipped ${data.skipped} damaged entries.` : ''}`,
+        `Restored ${data.answers.length} hands, your lesson progress${Object.keys(data.ranges).length ? ` and ${Object.keys(data.ranges).length} edited charts` : ''}.${data.skipped ? ` Skipped ${data.skipped} damaged entries.` : ''}`,
       )
     } catch (e) {
       setMessage(e instanceof BackupError ? e.message : 'Could not read that backup.')
@@ -293,8 +296,8 @@ function BackupSection({ answers, progress, onImport, onReset }: Props) {
     <section className="section backup">
       <h2>Backup</h2>
       <p className="hint">
-        Your stats live only on this device. A backup holds every answer and your lesson progress. Restoring one replaces
-        what's here.
+        Your stats live only on this device. A backup holds every answer, your lesson progress and your chart edits.
+        Restoring one replaces what's here.
       </p>
       <div className="button-row">
         <button type="button" className="secondary" onClick={copy}>
@@ -347,7 +350,9 @@ function BackupSection({ answers, progress, onImport, onReset }: Props) {
       <div className="danger">
         {confirmReset ? (
           <>
-            <p>Delete all {answers.length} hands and lesson progress from this device? This can't be undone.</p>
+            <p>
+              Delete all {answers.length} hands, lesson progress and chart edits from this device? This can't be undone.
+            </p>
             <div className="button-row">
               <button
                 type="button"

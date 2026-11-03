@@ -245,7 +245,10 @@ function FeedbackSheet({ result, onNext }: { result: Result; onNext: () => void 
             {why.spot} <RichText text={why.keyIdea} />
           </p>
         </div>
-        <p className="eyebrow">{spot.chart.title}</p>
+        <p className="eyebrow">
+          {spot.chart.title}
+          {spot.chart.edited ? ' · your edited chart' : ''}
+        </p>
         <RangeGrid chart={spot.chart} hero={spot.hand} />
         <button ref={nextRef} type="button" className="primary" onClick={onNext}>
           Next hand

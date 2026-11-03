@@ -13,7 +13,8 @@ import {
   recordAnswer,
   windowScore,
 } from './core/progress'
-import { DEFAULT_CHARTS } from './data/charts'
+import { type ChartOverride, type Overrides, applyOverride, parseOverrides } from './core/overrides'
+import { DEFAULT_CHART_DEFS, DEFAULT_CHARTS } from './data/charts'
 import { LESSONS } from './data/learning'
 import { DrillScreen } from './ui/drill/DrillScreen'
 import { DrillSetup } from './ui/drill/DrillSetup'
@@ -24,6 +25,7 @@ import { LearnHome } from './ui/learn/LearnHome'
 import { LessonScreen } from './ui/learn/LessonScreen'
 import { TermSheet } from './ui/learn/TermSheet'
 import { ChartDetail } from './ui/screens/ChartDetail'
+import { ChartEditor } from './ui/screens/ChartEditor'
 import { ChartList } from './ui/screens/ChartList'
 import { StatsScreen } from './ui/stats/StatsScreen'
 import { safeStorage } from './ui/storage'
@@ -35,6 +37,7 @@ type LearnView =
   | { kind: 'lesson'; id: string }
   | { kind: 'charts' }
   | { kind: 'chart'; id: string }
+  | { kind: 'edit'; id: string }
   | { kind: 'glossary' }
 
 interface DrillRun {
@@ -77,6 +80,25 @@ const TABS: { id: Tab; label: string; icon: JSX.Element }[] = [
 
 const TAB_KEY = 'poker-trainer:tab'
 const PROGRESS_KEY = 'poker-trainer:progress'
+const RANGES_KEY = 'poker-trainer:ranges'
+
+function loadOverrides(): Overrides {
+  try {
+    return parseOverrides(JSON.parse(safeStorage.get(RANGES_KEY) ?? 'null'), DEFAULT_CHART_DEFS)
+  } catch {
+    return {}
+  }
+}
+
+/** Default charts with the user's edits applied, in the default order. */
+function buildCharts(overrides: Overrides) {
+  return DEFAULT_CHARTS.map((c) => {
+    const o = overrides[c.id]
+    if (!o) return c
+    const def = DEFAULT_CHART_DEFS.find((d) => d.id === c.id)!
+    return { ...applyOverride(def, o), edited: true }
+  })
+}
 
 function loadProgress(): ProgressState {
   try {
@@ -103,6 +125,8 @@ export default function App() {
   const [banner, setBanner] = useState<string | null>(null)
   const [answers, setAnswers] = useState<AnswerLog[]>([])
   const [persistent, setPersistent] = useState(true)
+  const [overrides, setOverrides] = useState(loadOverrides)
+  const charts = useMemo(() => buildCharts(overrides), [overrides])
 
   const allowed = useMemo(() => allowedSeats(progress, LESSONS, unlockAll), [progress, unlockAll])
   const review = useMemo<ReviewPool>(() => {
@@ -126,6 +150,7 @@ export default function App() {
   useEffect(() => safeStorage.set(TAB_KEY, tab), [tab])
   useEffect(() => saveSettings(settings), [settings])
   useEffect(() => safeStorage.set(PROGRESS_KEY, JSON.stringify(progress)), [progress])
+  useEffect(() => safeStorage.set(RANGES_KEY, JSON.stringify(overrides)), [overrides])
   useEffect(() => window.scrollTo(0, 0), [tab, learn, drill?.key])
   useEffect(() => {
     const onHash = () => setUnlockAll(readUnlockAll())
@@ -173,12 +198,14 @@ export default function App() {
   const onImport = (data: BackupData) => {
     setAnswers(data.answers)
     setProgress(data.progress)
+    setOverrides(data.ranges)
     void replaceAnswers(data.answers)
   }
 
   const onReset = () => {
     setAnswers([])
     setProgress({})
+    setOverrides({})
     setDrill(null)
     void replaceAnswers([])
   }
@@ -214,12 +241,41 @@ export default function App() {
         return (
           <>
             <BackRow onBack={() => setLearn({ kind: 'home' })} />
-            <ChartList charts={DEFAULT_CHARTS} onOpen={(id) => setLearn({ kind: 'chart', id })} />
+            <ChartList charts={charts} onOpen={(id) => setLearn({ kind: 'chart', id })} />
           </>
         )
       case 'chart': {
-        const chart = DEFAULT_CHARTS.find((c) => c.id === learn.id)!
-        return <ChartDetail key={chart.id} chart={chart} onBack={() => setLearn({ kind: 'charts' })} />
+        const chart = charts.find((c) => c.id === learn.id)!
+        return (
+          <ChartDetail
+            key={chart.id}
+            chart={chart}
+            onBack={() => setLearn({ kind: 'charts' })}
+            onEdit={() => setLearn({ kind: 'edit', id: chart.id })}
+          />
+        )
+      }
+      case 'edit': {
+        const chart = charts.find((c) => c.id === learn.id)!
+        const def = DEFAULT_CHART_DEFS.find((d) => d.id === learn.id)!
+        return (
+          <ChartEditor
+            key={chart.id}
+            def={def}
+            chart={chart}
+            onCancel={() => setLearn({ kind: 'chart', id: chart.id })}
+            onSave={(o: ChartOverride | null) => {
+              setOverrides((prev) => {
+                const next = { ...prev }
+                if (o) next[chart.id] = o
+                else delete next[chart.id]
+                return next
+              })
+              setBanner(o ? 'Chart saved. Drills now use your version.' : 'Chart reset to the default.')
+              setLearn({ kind: 'chart', id: chart.id })
+            }}
+          />
+        )
       }
       case 'glossary':
         return <GlossaryScreen onBack={() => setLearn({ kind: 'home' })} />
@@ -245,7 +301,7 @@ export default function App() {
           {drill ? (
             <DrillScreen
               key={drill.key}
-              charts={DEFAULT_CHARTS}
+              charts={charts}
               settings={drill.settings}
               allowed={allowed}
               lesson={
@@ -281,7 +337,9 @@ export default function App() {
         {tab === 'stats' && (
           <StatsScreen
             answers={answers}
-            charts={DEFAULT_CHARTS}
+            charts={charts}
+            ranges={overrides}
+            chartDefs={DEFAULT_CHART_DEFS}
             lessons={LESSONS}
             progress={progress}
             persistent={persistent}

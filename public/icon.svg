@@ -1,6 +1,20 @@
-<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64">
-  <rect width="64" height="64" rx="14" fill="#0f5132"/>
-  <rect x="14" y="12" width="26" height="36" rx="4" fill="#fff" transform="rotate(-10 27 30)"/>
-  <rect x="24" y="16" width="26" height="36" rx="4" fill="#fff" stroke="#0f5132" stroke-width="2" transform="rotate(8 37 34)"/>
-  <path d="M37 26c-4 5-8 7-8 11a4 4 0 0 0 7 2l-1 4h4l-1-4a4 4 0 0 0 7-2c0-4-4-6-8-11z" fill="#111" transform="rotate(8 37 34)"/>
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512">
+  <!-- Felt background fills the whole square so the icon also works as a maskable icon. -->
+  <rect width="512" height="512" fill="#0f5132"/>
+  <ellipse cx="256" cy="256" rx="236" ry="236" fill="#145c3a"/>
+  <!-- Back card -->
+  <g transform="rotate(-12 220 270)">
+    <rect x="128" y="130" width="168" height="236" rx="20" fill="#f6f3ea" stroke="#0b3b24" stroke-width="6"/>
+    <path d="M150 204 L172 148 L194 204 M159 184 H185" fill="none" stroke="#c62828" stroke-width="11" stroke-linejoin="round" stroke-linecap="round"/>
+    <path d="M212 300c-20-26-44-36-44-58a22 22 0 0 1 44-6 22 22 0 0 1 44 6c0 22-24 32-44 58z" fill="#c62828"/>
+  </g>
+  <!-- Front card -->
+  <g transform="rotate(10 300 270)">
+    <rect x="216" y="140" width="168" height="236" rx="20" fill="#ffffff" stroke="#0b3b24" stroke-width="6"/>
+    <path d="M238 214 L260 158 L282 214 M247 194 H273" fill="none" stroke="#1a1c1b" stroke-width="11" stroke-linejoin="round" stroke-linecap="round"/>
+    <path d="M300 236c-26 32-54 44-54 72a28 28 0 0 0 46 20l-10 34h36l-10-34a28 28 0 0 0 46-20c0-28-28-40-54-72z" fill="#1a1c1b"/>
+  </g>
+  <!-- Brass chip -->
+  <circle cx="392" cy="392" r="58" fill="#d4a84b" stroke="#0b3b24" stroke-width="6"/>
+  <circle cx="392" cy="392" r="38" fill="none" stroke="#fff6dc" stroke-width="6" stroke-dasharray="14 10"/>
 </svg>

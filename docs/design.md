@@ -156,11 +156,16 @@ raise and call, raise wins; `mixed` entries override both.
 - `ev`: reserved for future EV data (e.g. imported solver charts). Not used in v1.
 - `notes`: hand-specific "why" notes.
 
-### 6.3 Editing (Learn → Ranges)
-- Tap or drag across grid cells to paint an action (raise / call / fold / mixed).
-- User edits are stored on the device as overrides on top of the defaults.
-- Reset a chart to its defaults.
-- Export / import charts as JSON.
+### 6.3 Editing (Learn → Range charts → a chart → Edit ranges)
+- Pick an action, then tap or drag across cells to paint it. A stroke that starts on a
+  cell that already has that action clears it to fold. Mixed hands from imported or
+  edited data are kept; painting them makes them pure.
+- Or edit the range text (`22+, A2s+, …`) and apply it to the grid, e.g. to paste a
+  chart from another source.
+- Live action shares and warnings for likely mistakes (AA/KK folded, 72o played).
+- Edits are stored on the device as overrides (range notation) on top of the defaults,
+  marked "Edited", used by drills and grading, and included in backups.
+- Reset a chart to the app's default.
 
 ### 6.4 Severity rating
 A fixed **hand strength ranking** of all 169 hands gives each hand a percentile. The

@@ -40,6 +40,8 @@ export interface Chart {
   keyIdea: string
   strategy: Record<HandClass, Mix>
   notes: Record<HandClass, string>
+  /** True when the user edited this chart's ranges. */
+  edited?: boolean
 }
 
 export class ChartError extends Error {

@@ -27,7 +27,10 @@ export function ChartList({ charts, onOpen }: { charts: readonly Chart[]; onOpen
                 return (
                   <li key={c.id}>
                     <button type="button" className="chart-row" onClick={() => onOpen(c.id)}>
-                      <span className="title">{c.title}</span>
+                      <span className="title">
+                        {c.title}
+                        {c.edited && <span className="severity clear edited-tag">Edited</span>}
+                      </span>
                       <span className="share" title="Share of hands played">
                         {percent(s.raise + s.call)}
                       </span>

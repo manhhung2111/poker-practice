@@ -22,6 +22,7 @@ npm install
 | `npm run build` | Installable PWA build → `dist/` |
 | `npm run build:single` | Single-file build for phone previews → `dist-single/index.html` |
 | `npm run preview:page` | Single-file build stripped for a claude.ai preview link → `dist-single/poker-trainer.html` |
+| `npm run icons` | Re-render `public/icon.svg` to the PNG app icons |
 | `npm run lint` | ESLint |
 
 ## Layout
@@ -39,6 +40,7 @@ npm install
   - `markdown.ts`, `glossary.ts`: lesson Markdown subset, auto-linking of glossary terms
   - `progress.ts`: lesson pass rule (16 of last 20), unlocks, allowed seats
   - `log.ts`, `review.ts`, `stats.ts`, `backup.ts`: answer log, spaced repetition of misses (3/10/30/100 hands), stats math, backup format
+  - `overrides.ts`: your chart edits (stored as range notation), sanity warnings
   - `dealing.ts`: deals drill spots for every spot type, bet sizes, table state (smart: 60% borderline hands, or realistic)
 - `src/data/lessons/*.md`: the 5 lessons (edit freely; `[[term-id]]` links the glossary)
 - `src/data/glossary.json`: glossary terms; `match` phrases are auto-linked in app text
@@ -55,6 +57,26 @@ npm install
 - [x] M3: Facing a raise, facing a 3-bet, blinds defense
 - [x] M4: Lessons, glossary, tap-to-explain, locked progression
 - [x] M5: Stats, leak heatmap, smart repetition, backup
-- [ ] M6: Range editor, installable + offline, polish
+- [x] M6: Range editor, installable + offline, polish
+
+**Phase 1 is complete.** Next: Phase 2a (M7 game engine, M8 table vs bots).
 
 Testing tip: open the app with `#unlock-all` at the end of the URL to unlock every lesson.
+
+## Install on your phone
+
+The claude.ai preview link can't be installed (previews don't allow offline service
+workers). To install the app on your home screen, host the `dist/` folder on any HTTPS
+static host, for example:
+
+- **GitHub Pages:** push the repo, build with `npm run build`, publish `dist/`
+  (e.g. with a Pages workflow or the `gh-pages` branch). Paths are relative, so a
+  `/repo-name/` subfolder works.
+- **Netlify / Vercel / Cloudflare Pages:** build command `npm run build`, output folder `dist`.
+
+Then open the URL on your phone:
+- **iPhone (Safari):** Share → Add to Home Screen.
+- **Android (Chrome):** menu → Install app.
+
+After the first visit it works offline. Note: an installed app keeps its own stats,
+separate from the preview link; use Stats → Copy backup / Restore to move them.

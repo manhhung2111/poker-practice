@@ -1617,3 +1617,50 @@ h3 {
   color: var(--sev-blunder);
   justify-self: start;
 }
+
+/* ---------- Range editor ---------- */
+
+.grid.editing {
+  touch-action: none;
+}
+
+.grid.editing .cell {
+  cursor: crosshair;
+}
+
+.brushes {
+  margin-bottom: 10px;
+}
+
+.brushes button {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+}
+
+.edit-button {
+  margin-top: 16px;
+}
+
+.edited-tag {
+  margin-left: 6px;
+  font-size: 0.65rem;
+  padding: 0 6px;
+  vertical-align: 2px;
+}
+
+.warnings {
+  list-style: none;
+  display: grid;
+  gap: 4px;
+  border-color: var(--sev-clear);
+}
+
+code {
+  font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+  font-size: 0.9em;
+  padding: 0 4px;
+  border-radius: 4px;
+  background: var(--surface-2);
+}
