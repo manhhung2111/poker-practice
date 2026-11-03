@@ -36,7 +36,11 @@ npm install
   - `charts.ts`: chart format, compile/validate, lookup, action labels
   - `grading.ts`: correct/wrong + severity (close / clear / blunder)
   - `explain.ts`: the "why" text after each answer
+  - `markdown.ts`, `glossary.ts`: lesson Markdown subset, auto-linking of glossary terms
+  - `progress.ts`: lesson pass rule (16 of last 20), unlocks, allowed seats
   - `dealing.ts`: deals drill spots for every spot type, bet sizes, table state (smart: 60% borderline hands, or realistic)
+- `src/data/lessons/*.md`: the 5 lessons (edit freely; `[[term-id]]` links the glossary)
+- `src/data/glossary.json`: glossary terms; `match` phrases are auto-linked in app text
 - `src/data/ranges/`: the 25 default charts (JSON); `src/data/charts.test.ts` holds the chart sanity checks
 - `src/ui/`: components (RangeGrid, PlayingCard, MiniTable), drill screens (`ui/drill/`), chart screens
 - `docs/design.md`: the agreed design and milestones
@@ -47,4 +51,7 @@ npm install
 - [x] M1: Range charts and grid
 - [x] M2: Open-or-fold drill
 - [x] M3: Facing a raise, facing a 3-bet, blinds defense
-- [ ] M4: Lessons, glossary, tap-to-explain, locked progression
+- [x] M4: Lessons, glossary, tap-to-explain, locked progression
+- [ ] M5: Stats, leak heatmap, smart repetition, backup
+
+Testing tip: open the app with `#unlock-all` at the end of the URL to unlock every lesson.

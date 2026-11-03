@@ -140,6 +140,23 @@ describe('dealSpot: all spot types', () => {
     expect(availableSpots('facing-open', ['SB', 'BB'])).toEqual([])
   })
 
+  it('respects allowed seats (locked lessons)', () => {
+    const allowed = { rfi: ['CO', 'BTN'] as const, 'facing-open': [], blinds: [], 'facing-3bet': [] }
+    expect(availableSpots('mixed', ['UTG', 'CO', 'BB'], allowed)).toEqual(['rfi'])
+    const rng = seededRng(4)
+    for (let i = 0; i < 200; i++) {
+      const s = dealSpot(DEFAULT_CHARTS, 'mixed', ['UTG', 'CO', 'BTN', 'BB'], 'smart', rng, allowed)
+      expect(s.type).toBe('rfi')
+      expect(['CO', 'BTN']).toContain(s.hero)
+    }
+  })
+
+  it('easy mode never deals edge hands', () => {
+    const edges = new Set(edgeHands(utg))
+    const rng = seededRng(8)
+    for (let i = 0; i < 500; i++) expect(edges.has(pickHand(utg, 'easy', rng))).toBe(false)
+  })
+
   it('always deals a consistent spot with a matching chart', () => {
     const rng = seededRng(21)
     const all = ['UTG', 'UTG+1', 'MP', 'LJ', 'HJ', 'CO', 'BTN', 'SB', 'BB'] as const

@@ -1,21 +1,31 @@
 import { useCallback, useEffect, useRef, useState } from 'react'
 import { type Action, type Chart, actionLabel } from '../../core/charts'
-import { type Spot, dealSpot } from '../../core/dealing'
+import { type AllowedSeats, type Spot, dealSpot } from '../../core/dealing'
 import { explain } from '../../core/explain'
 import { type Grade, type Severity, grade } from '../../core/grading'
+import { PASS_NEEDED, PASS_WINDOW } from '../../core/progress'
 import { MiniTable } from '../components/MiniTable'
 import { PlayingCard } from '../components/PlayingCard'
 import { RangeGrid } from '../components/RangeGrid'
 import { DRILL_SPOT_TITLES, describeHistory, handName, spotContext } from '../labels'
+import { RichText } from '../learn/RichText'
 import { type DrillSettings, SESSION_LENGTH } from './settings'
 
 interface Props {
   charts: readonly Chart[]
   settings: DrillSettings
+  /** Seats unlocked per spot type. */
+  allowed: AllowedSeats
+  /** Set when this drill belongs to a lesson: shows its pass meter and starts with warm-ups. */
+  lesson?: { number: number; title: string; correct: number; played: number; passed: boolean }
   /** False while another tab is shown: pauses auto-advance and keyboard shortcuts. */
   active: boolean
+  onAnswer: (spot: Spot, grade: Grade) => void
   onExit: () => void
 }
+
+/** Lesson drills start with this many clear-cut hands. */
+const WARMUP_HANDS = 3
 
 interface Result {
   spot: Spot
@@ -47,11 +57,13 @@ function buttonLabel(spot: Spot, action: Action): string {
   return spot.type === 'rfi' ? `${name} ${spot.sizes.raise}bb` : `${name} to ${spot.sizes.raise}bb`
 }
 
-export function DrillScreen({ charts, settings, active, onExit }: Props) {
-  const deal = useCallback(
-    () => dealSpot(charts, settings.spot, settings.positions, settings.dealing),
-    [charts, settings],
-  )
+export function DrillScreen({ charts, settings, allowed, lesson, active, onAnswer, onExit }: Props) {
+  const dealtRef = useRef(0)
+  const deal = useCallback(() => {
+    const warmup = lesson && dealtRef.current < WARMUP_HANDS
+    dealtRef.current++
+    return dealSpot(charts, settings.spot, settings.positions, warmup ? 'easy' : settings.dealing, undefined, allowed)
+  }, [charts, settings, allowed, lesson])
   const [spot, setSpot] = useState<Spot>(deal)
   const [phase, setPhase] = useState<Phase>('answer')
   const [results, setResults] = useState<Result[]>([])
@@ -75,8 +87,9 @@ export function DrillScreen({ charts, settings, active, onExit }: Props) {
       const g = grade(spot.chart, spot.hand, action)
       setResults((rs) => [...rs, { spot, grade: g }])
       setPhase(g.correct ? 'correct' : 'feedback')
+      onAnswer(spot, g)
     },
-    [phase, spot],
+    [phase, spot, onAnswer],
   )
 
   // Correct answers move on by themselves.
@@ -128,12 +141,24 @@ export function DrillScreen({ charts, settings, active, onExit }: Props) {
         <button type="button" className="back" onClick={onExit} aria-label="End drill">
           ‹
         </button>
-        <h1>{DRILL_SPOT_TITLES[spot.type]}</h1>
+        <h1>{lesson ? `Lesson ${lesson.number} drill` : DRILL_SPOT_TITLES[spot.type]}</h1>
         <span className="progress" aria-label="Progress">
-          {isSession ? `${Math.min(handNumber, SESSION_LENGTH)}/${SESSION_LENGTH}` : `#${handNumber}`}
-          <span className="score"> · {correctCount} right</span>
+          {lesson ? (
+            <>
+              {lesson.correct}/{lesson.played || 0}
+              <span className="score"> · need {PASS_NEEDED}/{PASS_WINDOW}</span>
+            </>
+          ) : (
+            <>
+              {isSession ? `${Math.min(handNumber, SESSION_LENGTH)}/${SESSION_LENGTH}` : `#${handNumber}`}
+              <span className="score"> · {correctCount} right</span>
+            </>
+          )}
         </span>
       </header>
+      {lesson && dealtRef.current <= WARMUP_HANDS && phase === 'answer' && (
+        <p className="hint warmup">Warm-up hand {dealtRef.current} of {WARMUP_HANDS}: an easy one.</p>
+      )}
 
       <MiniTable hero={spot.hero} seats={spot.seats} bets={spot.bets} />
 
@@ -199,9 +224,11 @@ function FeedbackSheet({ result, onNext }: { result: Result; onNext: () => void 
           </p>
         </div>
         <div className="why">
-          <p>{why.hand}</p>
+          <p>
+            <RichText text={why.hand} />
+          </p>
           <p className="muted">
-            {why.spot} {why.keyIdea}
+            {why.spot} <RichText text={why.keyIdea} />
           </p>
         </div>
         <p className="eyebrow">{spot.chart.title}</p>

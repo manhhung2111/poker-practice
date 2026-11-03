@@ -6,6 +6,7 @@ import { RangeGrid } from '../components/RangeGrid'
 import { mixBackground } from '../mixBackground'
 import { Matchup } from '../components/Positions'
 import { CATEGORY_NAMES, SPOT_TITLES, handName, percent } from '../labels'
+import { RichText } from '../learn/RichText'
 
 export function ChartDetail({ chart, onBack }: { chart: Chart; onBack: () => void }) {
   const [selected, setSelected] = useState<HandClass | undefined>()
@@ -24,7 +25,9 @@ export function ChartDetail({ chart, onBack }: { chart: Chart; onBack: () => voi
         <span className="eyebrow">{SPOT_TITLES[chart.spot]}</span>
         <Matchup chart={chart} />
       </div>
-      <p className="key-idea">{chart.keyIdea}</p>
+      <p className="key-idea">
+        <RichText text={chart.keyIdea} />
+      </p>
 
       <RangeGrid chart={chart} selected={selected} onSelect={setSelected} />
 
@@ -68,7 +71,11 @@ function HandDetail({ chart, hand }: { chart: Chart; hand: HandClass }) {
             : actionLabel(chart.spot, actions[0])}
         </strong>
       </p>
-      {chart.notes[hand] && <p>{chart.notes[hand]}</p>}
+      {chart.notes[hand] && (
+        <p>
+          <RichText text={chart.notes[hand]} />
+        </p>
+      )}
     </div>
   )
 }

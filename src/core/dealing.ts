@@ -4,7 +4,8 @@ import { type HandClass, ALL_HANDS, combos, handAt, gridPosition, comboCount } f
 import { type Position, OPENERS, POSITIONS, actsAfter } from './positions'
 import { type Rng, defaultRng, randomInt } from './random'
 
-export type DealingMode = 'smart' | 'realistic'
+/** smart = extra borderline hands; realistic = true frequencies; easy = clear-cut hands only (lesson warm-ups). */
+export type DealingMode = 'smart' | 'realistic' | 'easy'
 
 /** What the player drills. "blinds" = facing an open from the SB/BB. */
 export type DrillSpot = 'rfi' | 'facing-open' | 'blinds' | 'facing-3bet'
@@ -74,10 +75,23 @@ export function heroOptions(type: DrillSpot): readonly Position[] {
   }
 }
 
-/** Drill spots that have at least one of the chosen positions. */
-export function availableSpots(choice: DrillChoice, positions: readonly Position[]): DrillSpot[] {
+/** Seats allowed per spot type (e.g. by unlocked lessons). Missing = all of heroOptions. */
+export type AllowedSeats = Partial<Record<DrillSpot, readonly Position[]>>
+
+/** Hero seats for a spot type, given the player's choice and what's allowed. */
+export function seatsFor(type: DrillSpot, positions: readonly Position[], allowed: AllowedSeats = {}): Position[] {
+  const ok = allowed[type] ?? heroOptions(type)
+  return heroOptions(type).filter((p) => positions.includes(p) && ok.includes(p))
+}
+
+/** Drill spots that have at least one usable seat. */
+export function availableSpots(
+  choice: DrillChoice,
+  positions: readonly Position[],
+  allowed: AllowedSeats = {},
+): DrillSpot[] {
   const types = choice === 'mixed' ? DRILL_SPOTS : [choice]
-  return types.filter((t) => heroOptions(t).some((p) => positions.includes(p)))
+  return types.filter((t) => seatsFor(t, positions, allowed).length > 0)
 }
 
 // ---------- Hand selection ----------
@@ -105,8 +119,18 @@ export function edgeHands(chart: Chart): HandClass[] {
   })
 }
 
-/** Picks a hand class: realistic = true card frequencies; smart = 60% edge hands, else realistic. */
+/**
+ * Picks a hand class: realistic = true card frequencies; smart = 60% edge hands,
+ * else realistic; easy = only hands away from the edge.
+ */
 export function pickHand(chart: Chart, mode: DealingMode, rng: Rng = defaultRng): HandClass {
+  if (mode === 'easy') {
+    const edges = new Set(edgeHands(chart))
+    return weightedPick(
+      ALL_HANDS.filter((h) => !edges.has(h)),
+      rng,
+    )
+  }
   if (mode === 'smart' && rng() < SMART_EDGE_SHARE) {
     const edges = edgeHands(chart)
     if (edges.length) return weightedPick(edges, rng)
@@ -140,14 +164,12 @@ export function dealSpot(
   positions: readonly Position[],
   mode: DealingMode,
   rng: Rng = defaultRng,
+  allowed: AllowedSeats = {},
 ): Spot {
-  const types = availableSpots(choice, positions)
+  const types = availableSpots(choice, positions, allowed)
   if (!types.length) throw new Error('None of the chosen positions fit this drill')
   const type = pick(types, rng)
-  const hero = pick(
-    heroOptions(type).filter((p) => positions.includes(p)),
-    rng,
-  )
+  const hero = pick(seatsFor(type, positions, allowed), rng)
 
   const chartSpot: ChartSpot = type === 'blinds' ? 'facing-open' : type
   let villain: Position | undefined

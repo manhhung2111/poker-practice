@@ -1,10 +1,14 @@
-import { type DrillChoice, type DrillSpot, DRILL_SPOTS, availableSpots, heroOptions } from '../../core/dealing'
+import { type AllowedSeats, type DrillChoice, type DrillSpot, DRILL_SPOTS, availableSpots, heroOptions } from '../../core/dealing'
+import { type LessonInfo, lessonForSpot } from '../../core/progress'
 import { type Position, POSITIONS, POSITION_GROUPS } from '../../core/positions'
 import { DRILL_SPOT_NOTES, DRILL_SPOT_TITLES } from '../labels'
 import { type DrillSettings, SESSION_LENGTH } from './settings'
 
 interface Props {
   settings: DrillSettings
+  /** Seats unlocked per spot type. */
+  allowed: AllowedSeats
+  lessons: readonly LessonInfo[]
   onChange: (s: DrillSettings) => void
   onStart: () => void
 }
@@ -19,15 +23,22 @@ const PRESETS: { label: string; positions: readonly Position[] }[] = [
   { label: 'Blinds', positions: POSITION_GROUPS.blinds },
 ]
 
-/** Seats that can be drilled for a choice. */
-function usableSeats(choice: DrillChoice): Set<Position> {
+/** Seats that can be drilled for a choice, given what's unlocked. */
+function usableSeats(choice: DrillChoice, allowed: AllowedSeats): Set<Position> {
   const types: readonly DrillSpot[] = choice === 'mixed' ? DRILL_SPOTS : [choice]
-  return new Set(types.flatMap((t) => heroOptions(t)))
+  return new Set(types.flatMap((t) => heroOptions(t).filter((p) => (allowed[t] ?? heroOptions(t)).includes(p))))
 }
 
-export function DrillSetup({ settings, onChange, onStart }: Props) {
-  const usable = usableSeats(settings.spot)
-  const canStart = availableSpots(settings.spot, settings.positions).length > 0
+export function DrillSetup({ settings, allowed, lessons, onChange, onStart }: Props) {
+  const usable = usableSeats(settings.spot, allowed)
+  const canStart = availableSpots(settings.spot, settings.positions, allowed).length > 0
+  const spotLocked = (c: DrillChoice) => usableSeats(c, allowed).size === 0
+  const lockNote = (c: DrillChoice) => {
+    if (c === 'mixed') return 'Unlocks with lesson 2'
+    const l = lessonForSpot(lessons, c)
+    return l ? `Unlocks with lesson ${l.number}` : 'Locked'
+  }
+  const lockedSeatNote = settings.spot === 'rfi' && usable.size < heroOptions('rfi').length
   const toggle = (p: Position) => {
     const has = settings.positions.includes(p)
     const next = has ? settings.positions.filter((x) => x !== p) : [...settings.positions, p]
@@ -47,17 +58,18 @@ export function DrillSetup({ settings, onChange, onStart }: Props) {
           <legend>Spot</legend>
           <div className="options">
             {CHOICES.map((c) => (
-              <label key={c} className={`option${c === 'mixed' ? ' wide' : ''}`}>
+              <label key={c} className={`option${c === 'mixed' ? ' wide' : ''}${spotLocked(c) ? ' disabled' : ''}`}>
                 <input
                   type="radio"
                   id={`spot-${c}`}
                   name="spot"
                   checked={settings.spot === c}
+                  disabled={spotLocked(c)}
                   onChange={() => onChange({ ...settings, spot: c })}
                 />
                 <span>
                   <strong>{DRILL_SPOT_TITLES[c]}</strong>
-                  <small>{DRILL_SPOT_NOTES[c]}</small>
+                  <small>{spotLocked(c) ? lockNote(c) : DRILL_SPOT_NOTES[c]}</small>
                 </span>
               </label>
             ))}
@@ -74,13 +86,14 @@ export function DrillSetup({ settings, onChange, onStart }: Props) {
                 className="chip"
                 aria-pressed={settings.positions.includes(p)}
                 disabled={!usable.has(p)}
-                title={usable.has(p) ? undefined : `${p} can't be drilled in this spot`}
+                title={usable.has(p) ? undefined : `${p} isn't available for this spot yet`}
                 onClick={() => toggle(p)}
               >
                 {p}
               </button>
             ))}
           </div>
+          {lockedSeatNote && <p className="hint">Pass lesson 1 to open from every seat.</p>}
           <div className="presets">
             {PRESETS.map((pr) => (
               <button

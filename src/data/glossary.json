@@ -1,0 +1,238 @@
+[
+  {
+    "id": "bb",
+    "term": "Big blind (bb)",
+    "definition": "The bigger forced bet, posted by the player two seats left of the button. Bets are measured in big blinds, so \"2.5bb\" means 2.5 times the big blind.",
+    "example": "In a $1/$2 game, 1bb = $2 and a 2.5bb open is $5.",
+    "match": ["big blind"]
+  },
+  {
+    "id": "blinds",
+    "term": "Blinds (SB and BB)",
+    "definition": "The two forced bets posted before the cards are dealt: the small blind (half a big blind) and the big blind. They create a pot to fight for.",
+    "example": "Each hand starts with 1.5bb in the pot: 0.5bb from the SB and 1bb from the BB.",
+    "match": ["blinds", "small blind"]
+  },
+  {
+    "id": "position",
+    "term": "Position",
+    "definition": "Where you sit relative to the dealer button. It decides when you act. Acting later is an advantage because you see what others do first.",
+    "example": "The button acts last on every street after the flop, which makes it the best seat."
+  },
+  {
+    "id": "in-position",
+    "term": "In position (IP)",
+    "definition": "Acting after your opponent on the flop, turn and river. You get to see their action before deciding.",
+    "example": "BTN calls a CO raise: the BTN is in position for the rest of the hand.",
+    "match": ["in position"]
+  },
+  {
+    "id": "out-of-position",
+    "term": "Out of position (OOP)",
+    "definition": "Acting before your opponent after the flop. You must decide without knowing what they will do, which makes hands harder to play.",
+    "example": "The blinds are out of position against everyone except each other.",
+    "match": ["out of position"]
+  },
+  {
+    "id": "utg",
+    "term": "UTG (Under the Gun)",
+    "definition": "The first seat to act preflop, just left of the big blind. With 8 players behind, it needs the tightest range.",
+    "example": "In 9-max, the seats after UTG are UTG+1, MP, LJ, HJ, CO, BTN, SB, BB.",
+    "match": ["under the gun"]
+  },
+  {
+    "id": "lojack",
+    "term": "Lojack (LJ) and Hijack (HJ)",
+    "definition": "The two middle seats before the cutoff. Ranges here are wider than early position but tighter than the cutoff and button.",
+    "match": ["lojack", "hijack"]
+  },
+  {
+    "id": "cutoff",
+    "term": "Cutoff (CO)",
+    "definition": "The seat just right of the button. Only the button and blinds act after it, so it opens a wide range.",
+    "match": ["cutoff"]
+  },
+  {
+    "id": "button",
+    "term": "Button (BTN)",
+    "definition": "The dealer seat. It acts last after the flop in every hand, which makes it the most profitable seat at the table.",
+    "example": "The button opens almost half of all hands when folded to."
+  },
+  {
+    "id": "open",
+    "term": "Open (RFI)",
+    "definition": "The first raise in a hand when everyone before you folded. RFI stands for \"raise first in\".",
+    "example": "UTG and UTG+1 fold, MP raises to 2.5bb: MP opened.",
+    "match": ["raise first in", "open-raise", "open raise"]
+  },
+  {
+    "id": "limp",
+    "term": "Limp",
+    "definition": "Just calling the big blind instead of raising when nobody has raised yet. The charts in this app never limp: raising wins the pot more often and keeps the initiative.",
+    "match": ["limp", "limps", "limping"]
+  },
+  {
+    "id": "range",
+    "term": "Range",
+    "definition": "All the hands a player could have in a spot. You don't put opponents on one exact hand, you think about their whole range.",
+    "example": "\"UTG's opening range\" = every hand UTG would open, like 77+, ATs+, KQo…"
+  },
+  {
+    "id": "3-bet",
+    "term": "3-bet",
+    "definition": "The first re-raise before the flop. The big blind counts as the first bet, the open is the second, so re-raising it is the third bet.",
+    "example": "UTG raises to 2.5bb, you raise to 7.5bb: you 3-bet.",
+    "match": ["3-bet", "3-bets", "3-betting", "3-bettor", "3bet"]
+  },
+  {
+    "id": "4-bet",
+    "term": "4-bet",
+    "definition": "A re-raise of a 3-bet. Usually a very strong hand, or a bluff with a hand that blocks strong hands (like A5s).",
+    "example": "You open to 2.5bb, BTN 3-bets to 7.5bb, you make it 16.5bb: a 4-bet.",
+    "match": ["4-bet", "4-bets", "4-betting"]
+  },
+  {
+    "id": "flat",
+    "term": "Flat call",
+    "definition": "Calling a raise instead of re-raising.",
+    "example": "Facing a CO open, the BTN flats with 99 instead of 3-betting.",
+    "match": ["flat call", "flat calling", "flatting"]
+  },
+  {
+    "id": "steal",
+    "term": "Steal",
+    "definition": "An open from a late seat (CO, BTN, SB) mainly to win the blinds without a fight. Steals use wide ranges.",
+    "match": ["steal", "steals", "stealing"]
+  },
+  {
+    "id": "defend",
+    "term": "Defend",
+    "definition": "Calling or 3-betting from the blinds instead of folding to a raise. Because the blinds have chips in already, they get a discount and can defend many hands.",
+    "example": "BTN raises to 2.5bb. In the BB, you call 1.5bb more with K7s: you defend.",
+    "match": ["defend", "defends", "defending", "defense"]
+  },
+  {
+    "id": "squeeze",
+    "term": "Squeeze",
+    "definition": "A 3-bet after someone opened and someone else called. The opener and caller are both squeezed in the middle.",
+    "example": "CO opens, BTN calls, you 3-bet from the SB: a squeeze.",
+    "match": ["squeeze", "squeezes"]
+  },
+  {
+    "id": "dominated",
+    "term": "Dominated",
+    "definition": "Your hand shares a card with a better hand that has a stronger kicker. When you both hit, you usually lose big.",
+    "example": "KJo vs AKo: whenever both hit a king, AK has the better kicker. Before the flop, KJo has only about 25% equity against AK.",
+    "match": ["dominated", "domination", "dominate", "dominates"]
+  },
+  {
+    "id": "kicker",
+    "term": "Kicker",
+    "definition": "The side card that decides the winner when two players have the same pair.",
+    "example": "A-K vs A-9 on an A-7-2 board: both have a pair of aces, the king kicker wins.",
+    "match": ["kicker", "kickers"]
+  },
+  {
+    "id": "blocker",
+    "term": "Blocker",
+    "definition": "A card in your hand that makes certain opponent hands less likely, because you hold one of the cards they need.",
+    "example": "Holding an ace cuts the number of AA combos from 6 to 3 and AK combos from 16 to 12.",
+    "match": ["blocker", "blockers", "blocks", "blocking"]
+  },
+  {
+    "id": "suited",
+    "term": "Suited / offsuit",
+    "definition": "Suited (s) means both cards are the same suit; offsuit (o) means different suits. Suited hands can make flushes, which adds a few percent of equity.",
+    "example": "AKs = ace-king of the same suit. AKo = ace-king of different suits.",
+    "match": ["offsuit"]
+  },
+  {
+    "id": "broadway",
+    "term": "Broadway",
+    "definition": "Cards ten or higher: A, K, Q, J, T. Two broadway cards make strong top pairs and can make the A-K-Q-J-T straight.",
+    "match": ["broadway", "broadways"]
+  },
+  {
+    "id": "suited-connector",
+    "term": "Suited connector",
+    "definition": "Two suited cards next to each other in rank, like 98s or 65s. They make straights and flushes, which are easy to play well after the flop.",
+    "match": ["suited connector", "suited connectors"]
+  },
+  {
+    "id": "gapper",
+    "term": "Gapper",
+    "definition": "Two cards with a gap between them, like 97s (one gap) or 86s (two gaps). They make fewer straights than connectors.",
+    "match": ["gapper", "gappers"]
+  },
+  {
+    "id": "set",
+    "term": "Set (set mining)",
+    "definition": "Three of a kind made with a pocket pair. A pocket pair flops a set about 1 time in 8. \"Set mining\" means calling with a small pair hoping to hit one.",
+    "example": "You hold 55 and the flop is K-5-2: you flopped a set of fives.",
+    "match": ["set value", "set mining", "sets"]
+  },
+  {
+    "id": "nuts",
+    "term": "The nuts",
+    "definition": "The best possible hand on the current board. The \"nut flush\" is the ace-high flush.",
+    "match": ["nut flush", "the nuts", "nuts"]
+  },
+  {
+    "id": "wheel",
+    "term": "Wheel",
+    "definition": "The lowest straight: A-2-3-4-5. Small suited aces like A5s can make it.",
+    "match": ["wheel", "wheels"]
+  },
+  {
+    "id": "playability",
+    "term": "Playability",
+    "definition": "How easy and profitable a hand is to play after the flop. Suited and connected hands have good playability; offsuit, disconnected hands have bad playability.",
+    "match": ["playability"]
+  },
+  {
+    "id": "equity",
+    "term": "Equity",
+    "definition": "Your share of the pot if all the cards were dealt out with no more betting, i.e. your chance to win.",
+    "example": "AA vs KK all-in preflop: AA has about 82% equity.",
+    "match": ["equity"]
+  },
+  {
+    "id": "pot-odds",
+    "term": "Pot odds",
+    "definition": "The price of a call compared with what you can win. To call profitably, your equity must be at least: call ÷ (pot after your call).",
+    "example": "BB facing a 2.5bb open: pot is 4bb, you call 1.5bb, final pot 5.5bb. You need 1.5 ÷ 5.5 ≈ 27% equity.",
+    "match": ["pot odds"]
+  },
+  {
+    "id": "value",
+    "term": "Value bet",
+    "definition": "A bet or raise made because you expect worse hands to call. The opposite of a bluff.",
+    "example": "3-betting QQ against a CO open is for value: many worse hands continue.",
+    "match": ["for value", "value bet", "value bets"]
+  },
+  {
+    "id": "bluff",
+    "term": "Bluff",
+    "definition": "A bet or raise with a hand that is probably behind, hoping better hands fold. Good preflop bluffs still have backup, like blockers or straight and flush potential.",
+    "match": ["bluff", "bluffs", "bluffing"]
+  },
+  {
+    "id": "initiative",
+    "term": "Initiative",
+    "definition": "Being the last player who bet or raised. The player with the initiative can often win the pot with one more bet after the flop.",
+    "match": ["initiative"]
+  },
+  {
+    "id": "c-bet",
+    "term": "Continuation bet (c-bet)",
+    "definition": "A bet on the flop by the player who made the last preflop raise.",
+    "match": ["c-bet", "c-bets", "continuation bet"]
+  },
+  {
+    "id": "wet-board",
+    "term": "Wet board / dry board",
+    "definition": "A wet board has many possible draws (straights, flushes), so hand strength changes a lot on later cards. A dry board has few draws.",
+    "example": "Wet: J♥ T♥ 8♣. Dry: K♠ 7♦ 2♣.",
+    "match": ["wet board", "dry board", "board texture"]
+  }
+]
