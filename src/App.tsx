@@ -1,6 +1,10 @@
 import { useCallback, useEffect, useMemo, useState } from 'react'
-import type { Spot } from './core/dealing'
+import type { BackupData } from './core/backup'
+import type { ReviewPool, Spot } from './core/dealing'
 import type { Grade } from './core/grading'
+import type { AnswerLog } from './core/log'
+import { POSITIONS } from './core/positions'
+import { buildReviews, dueItems, queuedItems } from './core/review'
 import {
   type ProgressState,
   allowedSeats,
@@ -21,7 +25,9 @@ import { LessonScreen } from './ui/learn/LessonScreen'
 import { TermSheet } from './ui/learn/TermSheet'
 import { ChartDetail } from './ui/screens/ChartDetail'
 import { ChartList } from './ui/screens/ChartList'
+import { StatsScreen } from './ui/stats/StatsScreen'
 import { safeStorage } from './ui/storage'
+import { addAnswer, loadAnswers, replaceAnswers } from './storage/answers'
 
 type Tab = 'drill' | 'stats' | 'learn'
 type LearnView =
@@ -95,8 +101,27 @@ export default function App() {
   const [learn, setLearn] = useState<LearnView>({ kind: 'home' })
   const [term, setTerm] = useState<string | null>(null)
   const [banner, setBanner] = useState<string | null>(null)
+  const [answers, setAnswers] = useState<AnswerLog[]>([])
+  const [persistent, setPersistent] = useState(true)
 
   const allowed = useMemo(() => allowedSeats(progress, LESSONS, unlockAll), [progress, unlockAll])
+  const review = useMemo<ReviewPool>(() => {
+    const q = buildReviews(answers)
+    return { due: dueItems(q), queued: queuedItems(q) }
+  }, [answers])
+
+  useEffect(() => {
+    let cancelled = false
+    loadAnswers().then(({ answers: saved, persistent }) => {
+      if (cancelled) return
+      // Keep anything answered while loading.
+      setAnswers((now) => [...saved, ...now])
+      setPersistent(persistent)
+    })
+    return () => {
+      cancelled = true
+    }
+  }, [])
 
   useEffect(() => safeStorage.set(TAB_KEY, tab), [tab])
   useEffect(() => saveSettings(settings), [settings])
@@ -113,7 +138,23 @@ export default function App() {
     return () => clearTimeout(t)
   }, [banner])
 
-  const onAnswer = useCallback((spot: Spot, grade: Grade) => {
+  const onAnswer = useCallback((spot: Spot, grade: Grade, ms: number) => {
+    const entry: AnswerLog = {
+      at: Date.now(),
+      chartId: spot.chart.id,
+      type: spot.type,
+      hero: spot.hero,
+      ...(spot.villain ? { villain: spot.villain } : {}),
+      hand: spot.hand,
+      chosen: grade.chosen,
+      best: grade.best,
+      correct: grade.correct,
+      severity: grade.severity,
+      ms,
+      source: 'drill',
+    }
+    setAnswers((prev) => [...prev, entry])
+    void addAnswer(entry)
     setProgress((prev) => {
       const r = recordAnswer(prev, LESSONS, spot.type, spot.hero, grade.correct)
       if (r.passed.length) {
@@ -128,6 +169,19 @@ export default function App() {
       return r.state
     })
   }, [])
+
+  const onImport = (data: BackupData) => {
+    setAnswers(data.answers)
+    setProgress(data.progress)
+    void replaceAnswers(data.answers)
+  }
+
+  const onReset = () => {
+    setAnswers([])
+    setProgress({})
+    setDrill(null)
+    void replaceAnswers([])
+  }
 
   const startDrill = (s: DrillSettings, lessonId?: string) => {
     setDrill({ key: Date.now(), settings: s, lessonId })
@@ -205,6 +259,7 @@ export default function App() {
                   : undefined
               }
               active={tab === 'drill'}
+              review={review}
               onAnswer={onAnswer}
               onExit={() => {
                 const fromLesson = drill.lessonId
@@ -217,13 +272,24 @@ export default function App() {
               settings={settings}
               allowed={allowed}
               lessons={LESSONS}
+              queueSize={review.queued.length}
               onChange={setSettings}
               onStart={() => startDrill(settings)}
             />
           )}
         </div>
         {tab === 'stats' && (
-          <ComingSoon title="Stats" text="Your accuracy by spot and position, plus a heatmap of the hands you miss, arrive in M5." />
+          <StatsScreen
+            answers={answers}
+            charts={DEFAULT_CHARTS}
+            lessons={LESSONS}
+            progress={progress}
+            persistent={persistent}
+            queueSize={review.queued.length}
+            onDrillWeak={() => startDrill({ spot: 'mixed', positions: [...POSITIONS], session: 'session', dealing: 'weak' })}
+            onImport={onImport}
+            onReset={onReset}
+          />
         )}
         {tab === 'learn' && learnScreen()}
       </main>
@@ -264,19 +330,5 @@ function BackRow({ onBack }: { onBack: () => void }) {
     <button type="button" className="back back-row" onClick={onBack}>
       ‹ Learn
     </button>
-  )
-}
-
-function ComingSoon({ title, text }: { title: string; text: string }) {
-  return (
-    <>
-      <header className="header">
-        <h1>{title}</h1>
-      </header>
-      <div className="empty">
-        <h2>Coming soon</h2>
-        <p>{text}</p>
-      </div>
-    </>
   )
 }

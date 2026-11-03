@@ -31,7 +31,7 @@ export function loadSettings(): DrillSettings {
       spot,
       positions: positions.length ? positions : DEFAULT_SETTINGS.positions,
       session: raw.session === 'endless' ? 'endless' : 'session',
-      dealing: raw.dealing === 'realistic' ? 'realistic' : 'smart',
+      dealing: raw.dealing === 'realistic' || raw.dealing === 'weak' ? raw.dealing : 'smart',
     }
   } catch {
     return DEFAULT_SETTINGS

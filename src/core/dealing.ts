@@ -3,9 +3,15 @@ import { type Chart, type ChartSpot, findChart, mainAction } from './charts'
 import { type HandClass, ALL_HANDS, combos, handAt, gridPosition, comboCount } from './hands'
 import { type Position, OPENERS, POSITIONS, actsAfter } from './positions'
 import { type Rng, defaultRng, randomInt } from './random'
+import type { ReviewItem } from './review'
 
-/** smart = extra borderline hands; realistic = true frequencies; easy = clear-cut hands only (lesson warm-ups). */
-export type DealingMode = 'smart' | 'realistic' | 'easy'
+/**
+ * smart     = ~20% reviews of missed hands, the rest 60% borderline / 40% random
+ * realistic = true card frequencies
+ * easy      = clear-cut hands only (lesson warm-ups)
+ * weak      = only hands from the review queue (falls back to smart when it's empty)
+ */
+export type DealingMode = 'smart' | 'realistic' | 'easy' | 'weak'
 
 /** What the player drills. "blinds" = facing an open from the SB/BB. */
 export type DrillSpot = 'rfi' | 'facing-open' | 'blinds' | 'facing-3bet'
@@ -33,6 +39,16 @@ export interface Spot {
 
 /** Share of smart-mode deals taken from near the edge of the range. */
 export const SMART_EDGE_SHARE = 0.6
+/** Share of smart-mode deals that replay a due missed hand, when one fits the drill. */
+export const SMART_REVIEW_SHARE = 0.2
+
+/** Review items available to the dealer. */
+export interface ReviewPool {
+  /** Due now, most overdue first. */
+  due: readonly ReviewItem[]
+  /** Everything queued, soonest first (used by weak-spots mode). */
+  queued: readonly ReviewItem[]
+}
 
 // ---------- Bet sizes (design §3) ----------
 
@@ -131,7 +147,7 @@ export function pickHand(chart: Chart, mode: DealingMode, rng: Rng = defaultRng)
       rng,
     )
   }
-  if (mode === 'smart' && rng() < SMART_EDGE_SHARE) {
+  if ((mode === 'smart' || mode === 'weak') && rng() < SMART_EDGE_SHARE) {
     const edges = edgeHands(chart)
     if (edges.length) return weightedPick(edges, rng)
   }
@@ -153,10 +169,62 @@ const pick = <T,>(items: readonly T[], rng: Rng): T => items[randomInt(items.len
 
 // ---------- Dealing ----------
 
+/** Ways a chart can be dealt within the player's choice: drill type, hero seat, possible villains. */
+function chartOptions(
+  chart: Chart,
+  choice: DrillChoice,
+  positions: readonly Position[],
+  allowed: AllowedSeats,
+): { type: DrillSpot; hero: Position; villains: Position[] }[] {
+  const out: { type: DrillSpot; hero: Position; villains: Position[] }[] = []
+  for (const hero of chart.hero) {
+    const type: DrillSpot =
+      chart.spot === 'facing-open' ? (hero === 'SB' || hero === 'BB' ? 'blinds' : 'facing-open') : chart.spot
+    if (choice !== 'mixed' && choice !== type) continue
+    if (!seatsFor(type, positions, allowed).includes(hero)) continue
+    const villains =
+      type === 'rfi'
+        ? []
+        : chart.villain.filter((v) => (type === 'facing-3bet' ? actsAfter(v, hero) : actsAfter(hero, v) && OPENERS.includes(v)))
+    if (type !== 'rfi' && !villains.length) continue
+    out.push({ type, hero, villains })
+  }
+  return out
+}
+
+/** Builds a spot for a given chart and hand class. */
+function buildSpot(chart: Chart, type: DrillSpot, hero: Position, villain: Position | undefined, hand: HandClass, rng: Rng): Spot {
+  const [a, b] = pick(combos(hand), rng)
+  const cards: [Card, Card] = rng() < 0.5 ? [a, b] : [b, a]
+  return { type, chart, hero, villain, cards, hand, ...tableFor(type, hero, villain) }
+}
+
+/** Tries to deal one of the review items (in the order given). */
+function dealReview(
+  charts: readonly Chart[],
+  items: readonly ReviewItem[],
+  choice: DrillChoice,
+  positions: readonly Position[],
+  allowed: AllowedSeats,
+  rng: Rng,
+): Spot | null {
+  for (const item of items) {
+    const chart = charts.find((c) => c.id === item.chartId)
+    if (!chart) continue
+    const options = chartOptions(chart, choice, positions, allowed)
+    if (!options.length) continue
+    const o = pick(options, rng)
+    return buildSpot(chart, o.type, o.hero, o.villains.length ? pick(o.villains, rng) : undefined, item.hand, rng)
+  }
+  return null
+}
+
 /**
  * Deals one drill spot.
- * @param choice   which spot type to drill ('mixed' picks among the available ones)
+ * @param choice    which spot type to drill ('mixed' picks among the available ones)
  * @param positions hero seats the player selected
+ * @param allowed   seats unlocked per spot type
+ * @param review    missed hands to replay (smart and weak modes)
  */
 export function dealSpot(
   charts: readonly Chart[],
@@ -165,9 +233,23 @@ export function dealSpot(
   mode: DealingMode,
   rng: Rng = defaultRng,
   allowed: AllowedSeats = {},
+  review?: ReviewPool,
 ): Spot {
   const types = availableSpots(choice, positions, allowed)
   if (!types.length) throw new Error('None of the chosen positions fit this drill')
+
+  if (review && mode === 'weak') {
+    // Prefer due items, then the rest of the queue; shuffle the front a little so it isn't one fixed order.
+    const front = review.due.length ? review.due : review.queued
+    const start = randomInt(Math.min(front.length, 5) || 1, rng)
+    const spot = dealReview(charts, [...front.slice(start), ...front.slice(0, start), ...review.queued], choice, positions, allowed, rng)
+    if (spot) return spot
+  }
+  if (review && mode === 'smart' && review.due.length && rng() < SMART_REVIEW_SHARE) {
+    const spot = dealReview(charts, review.due, choice, positions, allowed, rng)
+    if (spot) return spot
+  }
+
   const type = pick(types, rng)
   const hero = pick(seatsFor(type, positions, allowed), rng)
 
@@ -181,12 +263,7 @@ export function dealSpot(
 
   const chart = findChart(charts, chartSpot, hero, villain)
   if (!chart) throw new Error(`No chart for ${chartSpot} ${hero} vs ${villain}`)
-
-  const hand = pickHand(chart, mode, rng)
-  const [a, b] = pick(combos(hand), rng)
-  const cards: [Card, Card] = rng() < 0.5 ? [a, b] : [b, a]
-
-  return { type, chart, hero, villain, cards, hand, ...tableFor(type, hero, villain) }
+  return buildSpot(chart, type, hero, villain, pickHand(chart, mode, rng), rng)
 }
 
 /** Builds the action history, seat states, bets and button sizes for a spot. */

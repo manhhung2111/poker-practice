@@ -245,16 +245,22 @@ time to answer, and source (drill or play).
 
 ### 8.3 Dealing modes
 - **Smart (default):**
-  - ~60% hands near the edge of a range, where decisions are hard (a hand is an
-    "edge" hand when a neighbouring grid cell, or the next pair for pairs, has a different action)
-  - ~20% hands you missed before, on spaced repetition: they come back after ~3, ~10,
-    ~30 hands, then rarely once answered right
-  - ~20% random, so you keep seeing normal hands
+  - ~20% replays of hands you missed, when one is due and fits the drill. Spaced
+    repetition: a miss is due again after 3 answers, then 10, 30 and 100 as you get it
+    right; a fourth correct answer in a row removes it. A new miss restarts it.
+  - the rest: 60% hands near the edge of a range, where decisions are hard (a hand is an
+    "edge" hand when a neighbouring grid cell, or the next pair for pairs, has a different
+    action), 40% random, so you keep seeing normal hands
+- **Weak spots:** only hands from the review queue (due first), within the chosen spot
+  and seats. Falls back to Smart when the queue is empty.
 - **Realistic:** true card frequencies.
 
 ### 8.4 Storage
-- IndexedDB on the device.
-- Export / import a single backup file (stats, progress, range edits).
+- Answer log in IndexedDB on the device; lesson progress and settings in localStorage.
+  If storage is blocked, the app works in memory and says so on the Stats screen.
+- Backup = one JSON text (answers + lesson progress; range edits join in M6).
+  Copy to clipboard (works inside the claude.ai preview) or download (installed app),
+  restore by pasting or picking a file. Reset all data has an in-page confirmation.
 
 ## 9. Phase 2: Play vs bots
 

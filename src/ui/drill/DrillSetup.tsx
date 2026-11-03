@@ -9,6 +9,8 @@ interface Props {
   /** Seats unlocked per spot type. */
   allowed: AllowedSeats
   lessons: readonly LessonInfo[]
+  /** Hands waiting in the review queue. */
+  queueSize: number
   onChange: (s: DrillSettings) => void
   onStart: () => void
 }
@@ -29,7 +31,7 @@ function usableSeats(choice: DrillChoice, allowed: AllowedSeats): Set<Position> 
   return new Set(types.flatMap((t) => heroOptions(t).filter((p) => (allowed[t] ?? heroOptions(t)).includes(p))))
 }
 
-export function DrillSetup({ settings, allowed, lessons, onChange, onStart }: Props) {
+export function DrillSetup({ settings, allowed, lessons, queueSize, onChange, onStart }: Props) {
   const usable = usableSeats(settings.spot, allowed)
   const canStart = availableSpots(settings.spot, settings.positions, allowed).length > 0
   const spotLocked = (c: DrillChoice) => usableSeats(c, allowed).size === 0
@@ -130,11 +132,18 @@ export function DrillSetup({ settings, allowed, lessons, onChange, onStart }: Pr
             <button type="button" aria-pressed={settings.dealing === 'realistic'} onClick={() => onChange({ ...settings, dealing: 'realistic' })}>
               Realistic
             </button>
+            <button type="button" aria-pressed={settings.dealing === 'weak'} onClick={() => onChange({ ...settings, dealing: 'weak' })}>
+              Weak spots
+            </button>
           </div>
           <p className="hint">
             {settings.dealing === 'smart'
-              ? 'More borderline hands, where decisions are hard and you learn the most.'
-              : 'Real card frequencies: most hands are easy folds, like at a real table.'}
+              ? 'More borderline hands, where you learn the most, plus hands you missed coming back for review.'
+              : settings.dealing === 'realistic'
+                ? 'Real card frequencies: most hands are easy folds, like at a real table.'
+                : queueSize
+                  ? `Only hands you missed recently (${queueSize} in your queue), within the spot and seats above.`
+                  : 'No missed hands queued yet, so this deals like Smart until you miss some.'}
           </p>
         </fieldset>
 

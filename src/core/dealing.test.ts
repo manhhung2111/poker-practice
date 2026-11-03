@@ -5,6 +5,7 @@ import { actsAfter } from './positions'
 import { handClassOf } from './hands'
 import { seededRng } from './random'
 import { DEFAULT_CHARTS } from '../data/charts'
+import type { ReviewItem } from './review'
 
 const utg = findChart(DEFAULT_CHARTS, 'rfi', 'UTG')!
 
@@ -180,5 +181,41 @@ describe('dealSpot: all spot types', () => {
       }
     }
     expect(seenTypes).toEqual(new Set(['rfi', 'facing-open', 'blinds', 'facing-3bet']))
+  })
+})
+
+describe('dealSpot: reviews', () => {
+  const item = (chartId: string, hand: string): ReviewItem => ({ key: `${chartId}|${hand}`, chartId, hand, step: 0, due: 1 })
+  const all = ['UTG', 'UTG+1', 'MP', 'LJ', 'HJ', 'CO', 'BTN', 'SB', 'BB'] as const
+
+  it('weak mode deals queued hands with a fitting seat', () => {
+    const pool = { due: [item('facing-open/bb-vs-late', 'K4o')], queued: [item('facing-open/bb-vs-late', 'K4o')] }
+    const rng = seededRng(2)
+    for (let i = 0; i < 50; i++) {
+      const s = dealSpot(DEFAULT_CHARTS, 'mixed', all, 'weak', rng, {}, pool)
+      expect(s.chart.id).toBe('facing-open/bb-vs-late')
+      expect(s.hand).toBe('K4o')
+      expect(s.type).toBe('blinds')
+      expect(s.hero).toBe('BB')
+      expect(['CO', 'BTN']).toContain(s.villain)
+    }
+  })
+
+  it('skips review items that do not fit the drill, falling back to normal dealing', () => {
+    const pool = { due: [item('facing-open/bb-vs-late', 'K4o')], queued: [item('facing-open/bb-vs-late', 'K4o')] }
+    const s = dealSpot(DEFAULT_CHARTS, 'rfi', ['UTG'], 'weak', seededRng(1), {}, pool)
+    expect(s.type).toBe('rfi')
+  })
+
+  it('smart mode replays due hands about 20% of the time', () => {
+    const pool = { due: [item('rfi/co', '22')], queued: [item('rfi/co', '22')] }
+    const rng = seededRng(6)
+    let reviews = 0
+    for (let i = 0; i < 3000; i++) {
+      const s = dealSpot(DEFAULT_CHARTS, 'rfi', ['CO'], 'smart', rng, {}, pool)
+      if (s.hand === '22') reviews++
+    }
+    expect(reviews / 3000).toBeGreaterThan(0.17)
+    expect(reviews / 3000).toBeLessThan(0.26)
   })
 })

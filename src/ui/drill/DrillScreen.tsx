@@ -1,6 +1,6 @@
 import { useCallback, useEffect, useRef, useState } from 'react'
 import { type Action, type Chart, actionLabel } from '../../core/charts'
-import { type AllowedSeats, type Spot, dealSpot } from '../../core/dealing'
+import { type AllowedSeats, type ReviewPool, type Spot, dealSpot } from '../../core/dealing'
 import { explain } from '../../core/explain'
 import { type Grade, type Severity, grade } from '../../core/grading'
 import { PASS_NEEDED, PASS_WINDOW } from '../../core/progress'
@@ -20,7 +20,9 @@ interface Props {
   lesson?: { number: number; title: string; correct: number; played: number; passed: boolean }
   /** False while another tab is shown: pauses auto-advance and keyboard shortcuts. */
   active: boolean
-  onAnswer: (spot: Spot, grade: Grade) => void
+  /** Missed hands to replay. Read when each hand is dealt. */
+  review: ReviewPool
+  onAnswer: (spot: Spot, grade: Grade, ms: number) => void
   onExit: () => void
 }
 
@@ -57,12 +59,24 @@ function buttonLabel(spot: Spot, action: Action): string {
   return spot.type === 'rfi' ? `${name} ${spot.sizes.raise}bb` : `${name} to ${spot.sizes.raise}bb`
 }
 
-export function DrillScreen({ charts, settings, allowed, lesson, active, onAnswer, onExit }: Props) {
+export function DrillScreen({ charts, settings, allowed, lesson, active, review, onAnswer, onExit }: Props) {
   const dealtRef = useRef(0)
+  const reviewRef = useRef(review)
+  reviewRef.current = review
+  const shownAt = useRef(Date.now())
   const deal = useCallback(() => {
     const warmup = lesson && dealtRef.current < WARMUP_HANDS
     dealtRef.current++
-    return dealSpot(charts, settings.spot, settings.positions, warmup ? 'easy' : settings.dealing, undefined, allowed)
+    shownAt.current = Date.now()
+    return dealSpot(
+      charts,
+      settings.spot,
+      settings.positions,
+      warmup ? 'easy' : settings.dealing,
+      undefined,
+      allowed,
+      reviewRef.current,
+    )
   }, [charts, settings, allowed, lesson])
   const [spot, setSpot] = useState<Spot>(deal)
   const [phase, setPhase] = useState<Phase>('answer')
@@ -87,7 +101,7 @@ export function DrillScreen({ charts, settings, allowed, lesson, active, onAnswe
       const g = grade(spot.chart, spot.hand, action)
       setResults((rs) => [...rs, { spot, grade: g }])
       setPhase(g.correct ? 'correct' : 'feedback')
-      onAnswer(spot, g)
+      onAnswer(spot, g, Date.now() - shownAt.current)
     },
     [phase, spot, onAnswer],
   )
