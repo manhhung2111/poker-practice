@@ -1,0 +1,25 @@
+{
+  "id": "facing-open/early-mid-vs-early",
+  "spot": "facing-open",
+  "title": "UTG+1 to HJ facing an early raise",
+  "hero": [
+    "UTG+1",
+    "MP",
+    "LJ",
+    "HJ"
+  ],
+  "villain": [
+    "UTG",
+    "UTG+1",
+    "MP"
+  ],
+  "keyIdea": "An early raise means a strong range, and players behind you can still squeeze. Play tight: 3-bet premiums, call with hands that don't get dominated.",
+  "actions": {
+    "raise": "QQ+, AKs, AKo",
+    "call": "JJ-77, AQs-AJs, KQs, QJs, JTs"
+  },
+  "notes": {
+    "AQo": "Looks pretty, but vs an early raise it's often dominated by AK, and you still have players behind.",
+    "KJo": "Dominated by AK, AJ, KQ in an early range. Fold."
+  }
+}

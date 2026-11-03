@@ -1,0 +1,19 @@
+{
+  "id": "facing-3bet/co-vs-btn",
+  "spot": "facing-3bet",
+  "title": "CO open facing a BTN 3-bet",
+  "hero": [
+    "CO"
+  ],
+  "villain": [
+    "BTN"
+  ],
+  "keyIdea": "The button 3-bets wide against a CO open, but you'll be out of position. Continue with good hands; fold the bottom of your opening range.",
+  "actions": {
+    "raise": "QQ+, AKs, AKo, A5s-A4s",
+    "call": "JJ-66, AQs-ATs, KQs-KTs, QJs, JTs, T9s, AQo"
+  },
+  "notes": {
+    "A5s": "A classic bluff raise: the ace blocks AA/AK, and it can still make a straight or the nut flush."
+  }
+}

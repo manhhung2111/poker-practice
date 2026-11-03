@@ -1,0 +1,16 @@
+{
+  "id": "rfi/utg",
+  "spot": "rfi",
+  "title": "UTG: open or fold",
+  "hero": [
+    "UTG"
+  ],
+  "keyIdea": "First to act with 8 players behind. Anyone can wake up with a big hand, so open only strong hands.",
+  "actions": {
+    "raise": "77+, ATs+, A5s, KTs+, QTs+, JTs, AJo+, KQo"
+  },
+  "notes": {
+    "A5s": "Opened for its playability: it makes wheels and nut flushes, and blocks AA/AK.",
+    "ATo": "Too weak this early: often dominated by AJ, AQ, AK when someone continues."
+  }
+}

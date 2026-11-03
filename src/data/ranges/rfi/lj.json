@@ -1,0 +1,12 @@
+{
+  "id": "rfi/lj",
+  "spot": "rfi",
+  "title": "LJ: open or fold",
+  "hero": [
+    "LJ"
+  ],
+  "keyIdea": "Five players left behind. All suited aces become opens, plus more suited connectors.",
+  "actions": {
+    "raise": "44+, A2s+, K9s+, Q9s+, J9s+, T9s, 98s, 87s, ATo+, KJo+, QJo"
+  }
+}

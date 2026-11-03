@@ -21,6 +21,7 @@ npm install
 | `npm run test:watch` | Tests in watch mode |
 | `npm run build` | Installable PWA build → `dist/` |
 | `npm run build:single` | Single-file build for phone previews → `dist-single/index.html` |
+| `npm run preview:page` | Single-file build stripped for a claude.ai preview link → `dist-single/poker-trainer.html` |
 | `npm run lint` | ESLint |
 
 ## Layout
@@ -31,12 +32,14 @@ npm install
   - `rangeParser.ts`: range notation (`22+, A2s+, KTo-K8o`) ↔ sets of hands
   - `strength.ts`: hand strength ranking (Chen formula) and top-% percentiles
   - `random.ts`: seeded RNG for reproducible tests
-- `src/data/`: range charts, lessons, glossary (from M1)
-- `src/ui/`: components and screens (from M1)
+  - `positions.ts`: 9-max positions, groups, valid matchups
+  - `charts.ts`: chart format, compile/validate, lookup, action labels
+- `src/data/ranges/`: the 25 default charts (JSON); `src/data/charts.test.ts` holds the chart sanity checks
+- `src/ui/`: components (RangeGrid, ...) and screens (chart list/detail)
 - `docs/design.md`: the agreed design and milestones
 
 ## Status
 
 - [x] M0: Foundations
-- [ ] M1: Range charts and grid
+- [x] M1: Range charts and grid
 - [ ] M2: Open-or-fold drill

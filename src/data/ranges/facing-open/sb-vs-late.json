@@ -1,0 +1,16 @@
+{
+  "id": "facing-open/sb-vs-late",
+  "spot": "facing-open",
+  "title": "SB facing a CO/BTN raise",
+  "hero": [
+    "SB"
+  ],
+  "villain": [
+    "CO",
+    "BTN"
+  ],
+  "keyIdea": "Late openers are wide, so fight back with 3-bets. From the small blind, 3-bet or fold: calling out of position with the BB behind is a losing habit.",
+  "actions": {
+    "raise": "88+, ATs+, A5s-A2s, KTs+, QTs+, JTs, T9s, AJo+, KQo"
+  }
+}

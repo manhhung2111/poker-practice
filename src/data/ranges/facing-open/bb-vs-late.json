@@ -1,0 +1,20 @@
+{
+  "id": "facing-open/bb-vs-late",
+  "spot": "facing-open",
+  "title": "BB defending vs a CO/BTN raise",
+  "hero": [
+    "BB"
+  ],
+  "villain": [
+    "CO",
+    "BTN"
+  ],
+  "keyIdea": "Late openers steal with weak hands, and you close the action with a discount. Defend a lot: almost any suited hand and many offsuit ones.",
+  "actions": {
+    "raise": "TT+, AJs+, KQs, AQo+, A5s-A4s",
+    "call": "99-22, ATs-A6s, A3s-A2s, KJs-K2s, Q4s+, J6s+, T6s+, 96s+, 85s+, 74s+, 64s+, 53s+, 43s, AJo-A2o, K8o+, Q9o+, J9o+, T8o+, 98o, 87o, 76o"
+  },
+  "notes": {
+    "A5s": "A classic bluff raise: the ace blocks AA/AK, and it can still make a straight or the nut flush."
+  }
+}

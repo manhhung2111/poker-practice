@@ -1,0 +1,26 @@
+{
+  "id": "facing-3bet/early-vs-ip",
+  "spot": "facing-3bet",
+  "title": "Early open facing a 3-bet from behind",
+  "hero": [
+    "UTG",
+    "UTG+1",
+    "MP"
+  ],
+  "villain": [
+    "UTG+1",
+    "MP",
+    "LJ",
+    "HJ",
+    "CO",
+    "BTN"
+  ],
+  "keyIdea": "A player who 3-bets an early open usually has a strong hand, and they'll have position. Continue only with strong hands.",
+  "actions": {
+    "raise": "KK+, AKs",
+    "call": "QQ-99, AKo, AQs, KQs"
+  },
+  "notes": {
+    "AQo": "Against a 3-bet of an early open, AQo is dominated by AK and big pairs. Fold."
+  }
+}

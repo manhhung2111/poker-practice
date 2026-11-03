@@ -1,0 +1,12 @@
+{
+  "id": "rfi/co",
+  "spot": "rfi",
+  "title": "CO: open or fold",
+  "hero": [
+    "CO"
+  ],
+  "keyIdea": "Only the button and blinds are left. Open about a quarter of hands, including many suited ones.",
+  "actions": {
+    "raise": "22+, A2s+, K6s+, Q8s+, J8s+, T8s+, 97s+, 86s+, 75s+, 65s, 54s, A8o+, KTo+, QTo+, JTo"
+  }
+}

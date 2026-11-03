@@ -1,0 +1,12 @@
+{
+  "id": "rfi/sb",
+  "spot": "rfi",
+  "title": "SB: open or fold (vs BB)",
+  "hero": [
+    "SB"
+  ],
+  "keyIdea": "Only the big blind left, but you'll be out of position after the flop. Raise a wide but not button-wide range.",
+  "actions": {
+    "raise": "22+, A2s+, K3s+, Q5s+, J7s+, T7s+, 96s+, 85s+, 75s+, 64s+, 54s, A4o+, K9o+, Q9o+, J9o+, T9o"
+  }
+}

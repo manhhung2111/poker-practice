@@ -1,0 +1,12 @@
+{
+  "id": "rfi/hj",
+  "spot": "rfi",
+  "title": "HJ: open or fold",
+  "hero": [
+    "HJ"
+  ],
+  "keyIdea": "Four players behind. Ranges widen fast as you get closer to the button.",
+  "actions": {
+    "raise": "33+, A2s+, K8s+, Q9s+, J9s+, T8s+, 98s, 87s, 76s, A9o+, KTo+, QTo+, JTo"
+  }
+}

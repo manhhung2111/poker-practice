@@ -1,0 +1,15 @@
+{
+  "id": "rfi/btn",
+  "spot": "rfi",
+  "title": "BTN: open or fold",
+  "hero": [
+    "BTN"
+  ],
+  "keyIdea": "The best seat: you act last after the flop in every hand. Open wide; only the blinds can stop you.",
+  "actions": {
+    "raise": "22+, A2s+, K2s+, Q4s+, J6s+, T6s+, 96s+, 85s+, 74s+, 64s+, 53s+, 43s, A2o+, K8o+, Q9o+, J9o+, T8o+, 98o, 87o"
+  },
+  "notes": {
+    "K2s": "Any suited king is an open from the button: you'll play in position and can make flushes."
+  }
+}

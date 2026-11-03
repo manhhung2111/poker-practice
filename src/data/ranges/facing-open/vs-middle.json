@@ -1,0 +1,22 @@
+{
+  "id": "facing-open/vs-middle",
+  "spot": "facing-open",
+  "title": "HJ/CO/BTN facing a middle raise",
+  "hero": [
+    "HJ",
+    "CO",
+    "BTN"
+  ],
+  "villain": [
+    "LJ",
+    "HJ"
+  ],
+  "keyIdea": "A LJ/HJ open is wider than an early open. 3-bet more strong hands for value, and call with pairs, suited broadways and connectors.",
+  "actions": {
+    "raise": "JJ+, AQs+, AQo+, A5s-A4s",
+    "call": "TT-44, AJs-ATs, KQs-KTs, QJs-QTs, JTs, T9s, 98s, AJo, KQo"
+  },
+  "notes": {
+    "A5s": "A classic bluff raise: the ace blocks AA/AK, and it can still make a straight or the nut flush."
+  }
+}

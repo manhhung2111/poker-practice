@@ -1,0 +1,23 @@
+{
+  "id": "facing-open/sb-vs-early-mid",
+  "spot": "facing-open",
+  "title": "SB facing an early or middle raise",
+  "hero": [
+    "SB"
+  ],
+  "villain": [
+    "UTG",
+    "UTG+1",
+    "MP",
+    "LJ",
+    "HJ"
+  ],
+  "keyIdea": "You'll be out of position with the big blind still behind you. Mostly 3-bet or fold; flat calling invites squeezes and hard spots.",
+  "actions": {
+    "raise": "JJ+, AQs+, AKo, KQs, A5s-A4s",
+    "call": "TT-88, AJs-ATs"
+  },
+  "notes": {
+    "A5s": "A classic bluff raise: the ace blocks AA/AK, and it can still make a straight or the nut flush."
+  }
+}

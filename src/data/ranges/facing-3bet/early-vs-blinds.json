@@ -1,0 +1,22 @@
+{
+  "id": "facing-3bet/early-vs-blinds",
+  "spot": "facing-3bet",
+  "title": "Early open facing a blind 3-bet",
+  "hero": [
+    "UTG",
+    "UTG+1",
+    "MP"
+  ],
+  "villain": [
+    "SB",
+    "BB"
+  ],
+  "keyIdea": "You'll have position against the blinds, so you can call a bit wider than vs a 3-bet from behind.",
+  "actions": {
+    "raise": "KK+, AKs, A5s",
+    "call": "QQ-77, AKo, AQs-ATs, KQs-KJs, QJs, JTs, AQo"
+  },
+  "notes": {
+    "A5s": "A classic bluff raise: the ace blocks AA/AK, and it can still make a straight or the nut flush."
+  }
+}

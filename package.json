@@ -10,7 +10,8 @@
     "preview": "vite preview",
     "test": "vitest run",
     "test:watch": "vitest",
-    "build:single": "tsc -b && vite build --mode single"
+    "build:single": "tsc -b && vite build --mode single",
+    "preview:page": "npm run build:single && node scripts/make-preview.mjs"
   },
   "dependencies": {
     "react": "^18.3.1",

@@ -1,0 +1,20 @@
+{
+  "id": "facing-open/bb-vs-middle",
+  "spot": "facing-open",
+  "title": "BB defending vs a middle raise",
+  "hero": [
+    "BB"
+  ],
+  "villain": [
+    "LJ",
+    "HJ"
+  ],
+  "keyIdea": "Middle-position opens are wider, so defend wider: more suited kings and queens, more connectors, and more offsuit broadways.",
+  "actions": {
+    "raise": "QQ+, AKs, AKo, A5s",
+    "call": "JJ-22, AQs-A6s, A4s-A2s, K8s+, Q8s+, J8s+, T8s+, 97s+, 86s+, 75s+, 64s+, 54s, AQo-ATo, KJo+, QJo"
+  },
+  "notes": {
+    "A5s": "A classic bluff raise: the ace blocks AA/AK, and it can still make a straight or the nut flush."
+  }
+}

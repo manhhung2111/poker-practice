@@ -1,0 +1,16 @@
+{
+  "id": "facing-open/bb-vs-sb",
+  "spot": "facing-open",
+  "title": "BB facing a SB raise",
+  "hero": [
+    "BB"
+  ],
+  "villain": [
+    "SB"
+  ],
+  "keyIdea": "The small blind raises wide and you'll have position for the whole hand. Defend very wide and 3-bet often.",
+  "actions": {
+    "raise": "99+, ATs+, KTs+, QJs, A5s-A2s, AJo+, KQo",
+    "call": "88-22, A9s-A6s, K9s-K2s, Q2s+, J5s+, T6s+, 96s+, 85s+, 74s+, 63s+, 53s+, 43s, ATo-A2o, KJo-K5o, Q8o+, J8o+, T8o+, 97o+, 87o, 76o"
+  }
+}

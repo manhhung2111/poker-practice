@@ -123,15 +123,16 @@ Details in §6.4 (severity) and §6.5 ("why" text).
 | Spot | Charts |
 |---|---|
 | Open or fold | 8, one per position UTG → SB (exact, not grouped) |
-| Facing a raise (incl. blinds defense) | ~10, grouped by hero group × opener group, with SB and BB charted separately |
-| Facing a 3-bet | ~6, grouped by opener group × whether the 3-bettor is in or out of position |
+| Facing a raise (incl. blinds defense) | 10: early/middle vs early, CO/BTN vs early, HJ/CO/BTN vs middle, BTN vs CO, SB vs early/middle, SB vs late, BB vs early, BB vs middle, BB vs late, BB vs SB |
+| Facing a 3-bet | 7: early open vs 3-bet from behind / from the blinds, middle open vs behind / blinds, CO vs BTN, CO/BTN vs blinds, SB vs BB |
 
-The exact list is finalized during M1. Each drill spot maps to exactly one chart.
+25 charts in total. A test checks that every valid position matchup maps to exactly one chart.
 
 ### 6.2 File format
 
 One JSON file per chart in `src/data/ranges/`, written with standard range notation
-(`22+`, `A2s+`, `KTo-K8o`). Hands not listed are folds.
+(`22+`, `A2s+`, `KTo-K8o`). Hands not listed are folds. If a hand is listed under both
+raise and call, raise wins; `mixed` entries override both.
 
 ```json
 {
@@ -186,7 +187,9 @@ Built from three layers, most specific first:
 Glossary terms inside the text are tappable (§7.1).
 
 ### 6.6 Chart sanity tests
-- Every chart resolves all 169 hands to an action, with no overlaps.
+- Every chart resolves all 169 hands to an action, with frequencies summing to 1.
+- Every valid position matchup maps to exactly one chart.
+- Hands continued vs a 3-bet are always in that position's opening range.
 - AA is never folded in any chart.
 - RFI ranges are nested and widen from UTG to BTN.
 - Every lesson and drill references charts that exist.

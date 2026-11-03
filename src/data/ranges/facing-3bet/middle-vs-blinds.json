@@ -1,0 +1,21 @@
+{
+  "id": "facing-3bet/middle-vs-blinds",
+  "spot": "facing-3bet",
+  "title": "Middle open facing a blind 3-bet",
+  "hero": [
+    "LJ",
+    "HJ"
+  ],
+  "villain": [
+    "SB",
+    "BB"
+  ],
+  "keyIdea": "In position against the blinds: call with pairs, suited broadways and good suited connectors; 4-bet value hands and a few bluffs.",
+  "actions": {
+    "raise": "QQ+, AKs, AKo, A5s-A4s",
+    "call": "JJ-55, AQs-A9s, KQs-KTs, QJs-QTs, JTs, T9s, 98s, AQo, KQo"
+  },
+  "notes": {
+    "A5s": "A classic bluff raise: the ace blocks AA/AK, and it can still make a straight or the nut flush."
+  }
+}

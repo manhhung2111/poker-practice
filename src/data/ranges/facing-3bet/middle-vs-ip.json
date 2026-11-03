@@ -1,0 +1,22 @@
+{
+  "id": "facing-3bet/middle-vs-ip",
+  "spot": "facing-3bet",
+  "title": "Middle open facing a 3-bet from behind",
+  "hero": [
+    "LJ",
+    "HJ"
+  ],
+  "villain": [
+    "HJ",
+    "CO",
+    "BTN"
+  ],
+  "keyIdea": "Your LJ/HJ open is wider, so their 3-bet range is a bit wider too. 4-bet the best hands and continue with strong pairs and broadways.",
+  "actions": {
+    "raise": "QQ+, AKs, AKo, A5s",
+    "call": "JJ-77, AQs-ATs, KQs-KJs, QJs, JTs, AQo"
+  },
+  "notes": {
+    "A5s": "A classic bluff raise: the ace blocks AA/AK, and it can still make a straight or the nut flush."
+  }
+}

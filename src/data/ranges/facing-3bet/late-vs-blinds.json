@@ -1,0 +1,21 @@
+{
+  "id": "facing-3bet/late-vs-blinds",
+  "spot": "facing-3bet",
+  "title": "CO/BTN open facing a blind 3-bet",
+  "hero": [
+    "CO",
+    "BTN"
+  ],
+  "villain": [
+    "SB",
+    "BB"
+  ],
+  "keyIdea": "Blinds 3-bet wide against late opens, and you have position. Defend a lot: pairs, suited aces, suited broadways and connectors.",
+  "actions": {
+    "raise": "QQ+, AKs, AQs, AKo, A5s-A4s",
+    "call": "JJ-44, AJs-A8s, KQs-K9s, QJs-Q9s, J9s+, T9s, 98s, 87s, 76s, AQo-AJo, KQo-KJo"
+  },
+  "notes": {
+    "A5s": "A classic bluff raise: the ace blocks AA/AK, and it can still make a straight or the nut flush."
+  }
+}

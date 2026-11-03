@@ -1,0 +1,12 @@
+{
+  "id": "rfi/utg1",
+  "spot": "rfi",
+  "title": "UTG+1: open or fold",
+  "hero": [
+    "UTG+1"
+  ],
+  "keyIdea": "Still 7 players behind you. Almost as tight as UTG, adding a few pairs and suited hands.",
+  "actions": {
+    "raise": "66+, A9s+, A5s-A4s, KTs+, QTs+, JTs, T9s, AJo+, KQo"
+  }
+}

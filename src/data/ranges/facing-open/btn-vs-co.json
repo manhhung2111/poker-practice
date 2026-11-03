@@ -1,0 +1,19 @@
+{
+  "id": "facing-open/btn-vs-co",
+  "spot": "facing-open",
+  "title": "BTN facing a CO raise",
+  "hero": [
+    "BTN"
+  ],
+  "villain": [
+    "CO"
+  ],
+  "keyIdea": "The CO opens wide, and you have the best position at the table. Play many hands: 3-bet a strong and bluffy range, call with lots of playable hands.",
+  "actions": {
+    "raise": "TT+, AJs+, KQs, AQo+, A5s-A3s",
+    "call": "99-22, ATs-A6s, KJs-K9s, QJs-QTs, J9s+, T9s, 98s, 87s, 76s, AJo-ATo, KQo-KJo"
+  },
+  "notes": {
+    "A5s": "A classic bluff raise: the ace blocks AA/AK, and it can still make a straight or the nut flush."
+  }
+}

@@ -1,0 +1,22 @@
+{
+  "id": "facing-open/late-vs-early",
+  "spot": "facing-open",
+  "title": "CO/BTN facing an early raise",
+  "hero": [
+    "CO",
+    "BTN"
+  ],
+  "villain": [
+    "UTG",
+    "UTG+1",
+    "MP"
+  ],
+  "keyIdea": "The raiser's range is still strong, but you'll have position. Call a bit wider than early seats, especially suited hands and pairs.",
+  "actions": {
+    "raise": "QQ+, AKs, AKo, A5s",
+    "call": "JJ-55, AQs-ATs, KQs-KJs, QJs, JTs, T9s, AQo"
+  },
+  "notes": {
+    "A5s": "A classic bluff raise: the ace blocks AA/AK, and it can still make a straight or the nut flush."
+  }
+}

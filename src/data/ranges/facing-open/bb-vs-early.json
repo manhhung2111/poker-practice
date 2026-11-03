@@ -1,0 +1,21 @@
+{
+  "id": "facing-open/bb-vs-early",
+  "spot": "facing-open",
+  "title": "BB defending vs an early raise",
+  "hero": [
+    "BB"
+  ],
+  "villain": [
+    "UTG",
+    "UTG+1",
+    "MP"
+  ],
+  "keyIdea": "You already have 1bb in, so calling is cheap (about 27% equity needed). But early ranges are strong: defend with pairs, suited hands and strong offsuit aces.",
+  "actions": {
+    "raise": "QQ+, AKs, AKo",
+    "call": "JJ-22, AQs-A2s, KTs+, QTs+, J9s+, T9s, 98s, 87s, 76s, 65s, AQo-AJo, KQo"
+  },
+  "notes": {
+    "A2s": "Suited aces defend cheaply: nut flush potential and you're already invested."
+  }
+}

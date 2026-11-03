@@ -1,0 +1,19 @@
+{
+  "id": "facing-3bet/sb-vs-bb",
+  "spot": "facing-3bet",
+  "title": "SB open facing a BB 3-bet",
+  "hero": [
+    "SB"
+  ],
+  "villain": [
+    "BB"
+  ],
+  "keyIdea": "Your SB open is wide, but you'll be out of position for the whole hand. Continue with solid hands; fold the weakest part of your opens.",
+  "actions": {
+    "raise": "QQ+, AKs, AKo, A5s-A4s",
+    "call": "JJ-55, AQs-A8s, KQs-K9s, QJs-Q9s, JTs, J9s, T9s, 98s, AQo-AJo, KQo"
+  },
+  "notes": {
+    "A5s": "A classic bluff raise: the ace blocks AA/AK, and it can still make a straight or the nut flush."
+  }
+}
