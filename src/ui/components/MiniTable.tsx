@@ -1,6 +1,5 @@
+import type { SeatState } from '../../core/dealing'
 import { type Position, POSITIONS } from '../../core/positions'
-
-export type SeatState = 'folded' | 'waiting' | 'hero' | 'raised'
 
 interface Props {
   hero: Position

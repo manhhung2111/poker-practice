@@ -554,8 +554,12 @@ h3 {
   border-color: var(--accent);
 }
 
-.option.disabled {
-  opacity: 0.5;
+.option.wide {
+  grid-column: 1 / -1;
+}
+
+.chip:disabled {
+  opacity: 0.3;
   cursor: not-allowed;
 }
 
@@ -808,12 +812,14 @@ h3 {
 
 .action {
   min-height: 56px;
+  padding: 0 6px;
+  line-height: 1.1;
   border-radius: var(--radius);
   border: 0;
   font-family: var(--font-display);
-  font-size: var(--step-2);
+  font-size: clamp(1.05rem, 5vw, 1.5rem);
   font-weight: 700;
-  letter-spacing: 0.03em;
+  letter-spacing: 0.02em;
   cursor: pointer;
   color: var(--on-action);
 }
@@ -992,7 +998,7 @@ h3 {
 
 .mistakes li {
   display: grid;
-  grid-template-columns: auto auto 1fr auto;
+  grid-template-columns: auto auto minmax(0, 1fr) auto;
   align-items: center;
   gap: 8px;
   padding: 8px 10px;

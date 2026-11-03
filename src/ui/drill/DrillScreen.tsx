@@ -1,13 +1,12 @@
 import { useCallback, useEffect, useRef, useState } from 'react'
 import { type Action, type Chart, actionLabel } from '../../core/charts'
-import { type Spot, dealRfi } from '../../core/dealing'
+import { type Spot, dealSpot } from '../../core/dealing'
 import { explain } from '../../core/explain'
 import { type Grade, type Severity, grade } from '../../core/grading'
-import { type Position, POSITIONS } from '../../core/positions'
-import { MiniTable, type SeatState } from '../components/MiniTable'
+import { MiniTable } from '../components/MiniTable'
 import { PlayingCard } from '../components/PlayingCard'
 import { RangeGrid } from '../components/RangeGrid'
-import { handName } from '../labels'
+import { DRILL_SPOT_TITLES, describeHistory, handName, spotContext } from '../labels'
 import { type DrillSettings, SESSION_LENGTH } from './settings'
 
 interface Props {
@@ -40,14 +39,26 @@ const SEVERITY_PLURALS: Record<Exclude<Severity, 'none'>, string> = {
   blunder: 'blunders',
 }
 
+/** Button label with the size, e.g. "Call 2.5bb", "3-bet to 7.5bb", "Raise 2.5bb". */
+function buttonLabel(spot: Spot, action: Action): string {
+  const name = actionLabel(spot.chart.spot, action)
+  if (action === 'fold') return name
+  if (action === 'call') return `${name} ${spot.sizes.call}bb`
+  return spot.type === 'rfi' ? `${name} ${spot.sizes.raise}bb` : `${name} to ${spot.sizes.raise}bb`
+}
+
 export function DrillScreen({ charts, settings, active, onExit }: Props) {
-  const deal = useCallback(() => dealRfi(charts, settings.positions, settings.dealing), [charts, settings])
+  const deal = useCallback(
+    () => dealSpot(charts, settings.spot, settings.positions, settings.dealing),
+    [charts, settings],
+  )
   const [spot, setSpot] = useState<Spot>(deal)
   const [phase, setPhase] = useState<Phase>('answer')
   const [results, setResults] = useState<Result[]>([])
   const last = results[results.length - 1]
   const isSession = settings.session === 'session'
   const correctCount = results.filter((r) => r.grade.correct).length
+  const actions: Action[] = spot.type === 'rfi' ? ['fold', 'raise'] : ['fold', 'call', 'raise']
 
   const next = useCallback(() => {
     if (isSession && results.length >= SESSION_LENGTH) {
@@ -75,16 +86,16 @@ export function DrillScreen({ charts, settings, active, onExit }: Props) {
     return () => clearTimeout(t)
   }, [phase, next, active])
 
-  // Keyboard: F = fold, R = raise, Enter/Space = next.
-  const keyRef = useRef({ answer, next, phase, active })
-  keyRef.current = { answer, next, phase, active }
+  // Keyboard: F = fold, C = call, R = raise, Enter/Space = next.
+  const keyRef = useRef({ answer, next, phase, active, actions })
+  keyRef.current = { answer, next, phase, active, actions }
   useEffect(() => {
     const onKey = (e: KeyboardEvent) => {
-      const { answer, next, phase, active } = keyRef.current
+      const { answer, next, phase, active, actions } = keyRef.current
       if (!active || e.target instanceof HTMLInputElement) return
       const k = e.key.toLowerCase()
-      if (phase === 'answer' && k === 'f') answer('fold')
-      if (phase === 'answer' && k === 'r') answer('raise')
+      const byKey: Record<string, Action> = { f: 'fold', c: 'call', r: 'raise' }
+      if (phase === 'answer' && byKey[k] && actions.includes(byKey[k])) answer(byKey[k])
       if ((phase === 'feedback' || phase === 'correct') && (k === 'enter' || k === ' ')) {
         e.preventDefault()
         next()
@@ -108,7 +119,8 @@ export function DrillScreen({ charts, settings, active, onExit }: Props) {
     )
   }
 
-  const raiseSize = spot.hero === 'SB' ? '3bb' : '2.5bb'
+  const handNumber = results.length + (phase === 'answer' ? 1 : 0)
+  const story = describeHistory(spot.history)
 
   return (
     <div className="drill">
@@ -116,17 +128,18 @@ export function DrillScreen({ charts, settings, active, onExit }: Props) {
         <button type="button" className="back" onClick={onExit} aria-label="End drill">
           ‹
         </button>
-        <h1>Open or fold</h1>
+        <h1>{DRILL_SPOT_TITLES[spot.type]}</h1>
         <span className="progress" aria-label="Progress">
-          {isSession ? `${Math.min(results.length + (phase === 'answer' ? 1 : 0), SESSION_LENGTH)}/${SESSION_LENGTH}` : `#${results.length + (phase === 'answer' ? 1 : 0)}`}
+          {isSession ? `${Math.min(handNumber, SESSION_LENGTH)}/${SESSION_LENGTH}` : `#${handNumber}`}
           <span className="score"> · {correctCount} right</span>
         </span>
       </header>
 
-      <MiniTable hero={spot.hero} seats={seatStates(spot.hero)} bets={{ SB: 0.5, BB: 1 }} />
+      <MiniTable hero={spot.hero} seats={spot.seats} bets={spot.bets} />
 
       <p className="situation">
-        {situation(spot.hero)} <span className="muted">You are {spot.hero}.</span>
+        {story.length ? `${story.join('. ')}.` : "You're first to act."}{' '}
+        <strong>You are {spot.hero}.</strong>
       </p>
 
       <div className="hole">
@@ -135,18 +148,24 @@ export function DrillScreen({ charts, settings, active, onExit }: Props) {
       </div>
 
       <div className="actions">
-        <button type="button" className="action fold" onClick={() => answer('fold')} disabled={phase !== 'answer'}>
-          Fold
-        </button>
-        <button type="button" className="action raise" onClick={() => answer('raise')} disabled={phase !== 'answer'}>
-          Raise {raiseSize}
-        </button>
+        {actions.map((a) => (
+          <button
+            key={a}
+            type="button"
+            className={`action ${a}`}
+            onClick={() => answer(a)}
+            disabled={phase !== 'answer'}
+          >
+            {buttonLabel(spot, a)}
+          </button>
+        ))}
       </div>
 
       {phase === 'correct' && last && (
         <div className="toast" role="status">
           <span>
-            <strong>Correct.</strong> {last.spot.hand} is a {actionLabel(last.spot.chart.spot, last.grade.best).toLowerCase()} from {last.spot.hero}.
+            <strong>Correct.</strong> {last.spot.hand} is a {actionLabel(last.spot.chart.spot, last.grade.chosen).toLowerCase()}{' '}
+            {spotContext(last.spot.type, last.spot.hero, last.spot.villain)}.
           </span>
           <button type="button" className="link-button" onClick={() => setPhase('feedback')}>
             Why?
@@ -157,22 +176,6 @@ export function DrillScreen({ charts, settings, active, onExit }: Props) {
       {phase === 'feedback' && last && <FeedbackSheet result={last} onNext={next} />}
     </div>
   )
-}
-
-function seatStates(hero: Position): Partial<Record<Position, SeatState>> {
-  const out: Partial<Record<Position, SeatState>> = {}
-  for (const p of POSITIONS) {
-    if (p === hero) out[p] = 'hero'
-    else if (POSITIONS.indexOf(p) < POSITIONS.indexOf(hero)) out[p] = 'folded'
-  }
-  return out
-}
-
-function situation(hero: Position): string {
-  const i = POSITIONS.indexOf(hero)
-  if (i === 0) return "You're first to act."
-  if (i === 1) return 'UTG folds to you.'
-  return `${POSITIONS[0]} to ${POSITIONS[i - 1]} fold to you.`
 }
 
 function FeedbackSheet({ result, onNext }: { result: Result; onNext: () => void }) {
@@ -188,13 +191,12 @@ function FeedbackSheet({ result, onNext }: { result: Result; onNext: () => void 
         <div className="sheet-head">
           <span className={`severity ${g.severity}`}>{SEVERITY_LABELS[g.severity]}</span>
           <h2 id="feedback-title">
-            {spot.hand} from {spot.hero}: {g.correctActions.map(label).join(' or ')}
+            {spot.hand}: {g.correctActions.map(label).join(' or ')}
           </h2>
-          {!g.correct && (
-            <p className="muted">
-              You chose {label(g.chosen).toLowerCase()}. {handName(spot.hand)}.
-            </p>
-          )}
+          <p className="muted">
+            {handName(spot.hand)} {spotContext(spot.type, spot.hero, spot.villain)}.
+            {!g.correct && ` You chose ${label(g.chosen).toLowerCase()}.`}
+          </p>
         </div>
         <div className="why">
           <p>{why.hand}</p>
@@ -202,6 +204,7 @@ function FeedbackSheet({ result, onNext }: { result: Result; onNext: () => void 
             {why.spot} {why.keyIdea}
           </p>
         </div>
+        <p className="eyebrow">{spot.chart.title}</p>
         <RangeGrid chart={spot.chart} hero={spot.hand} />
         <button ref={nextRef} type="button" className="primary" onClick={onNext}>
           Next hand
@@ -239,16 +242,22 @@ function Summary({ results, onAgain, onExit }: { results: Result[]; onAgain: () 
           <>
             <h2>Your mistakes</h2>
             <ul className="mistakes">
-              {mistakes.map((r, i) => (
-                <li key={i}>
-                  <span className="pos">{r.spot.hero}</span>
-                  <strong>{r.spot.hand}</strong>
-                  <span className="muted">
-                    you {actionLabel('rfi', r.grade.chosen).toLowerCase()}, best {actionLabel('rfi', r.grade.best).toLowerCase()}
-                  </span>
-                  <span className={`severity ${r.grade.severity}`}>{SEVERITY_LABELS[r.grade.severity]}</span>
-                </li>
-              ))}
+              {mistakes.map((r, i) => {
+                const lbl = (a: Action) => actionLabel(r.spot.chart.spot, a).toLowerCase()
+                return (
+                  <li key={i}>
+                    <span className="pos">
+                      {r.spot.hero}
+                      {r.spot.villain ? ` v ${r.spot.villain}` : ''}
+                    </span>
+                    <strong>{r.spot.hand}</strong>
+                    <span className="muted">
+                      you {lbl(r.grade.chosen)}, best {lbl(r.grade.best)}
+                    </span>
+                    <span className={`severity ${r.grade.severity}`}>{SEVERITY_LABELS[r.grade.severity]}</span>
+                  </li>
+                )
+              })}
             </ul>
           </>
         ) : (

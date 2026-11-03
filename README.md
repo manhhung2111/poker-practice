@@ -36,7 +36,7 @@ npm install
   - `charts.ts`: chart format, compile/validate, lookup, action labels
   - `grading.ts`: correct/wrong + severity (close / clear / blunder)
   - `explain.ts`: the "why" text after each answer
-  - `dealing.ts`: deals drill spots (smart: 60% borderline hands, or realistic)
+  - `dealing.ts`: deals drill spots for every spot type, bet sizes, table state (smart: 60% borderline hands, or realistic)
 - `src/data/ranges/`: the 25 default charts (JSON); `src/data/charts.test.ts` holds the chart sanity checks
 - `src/ui/`: components (RangeGrid, PlayingCard, MiniTable), drill screens (`ui/drill/`), chart screens
 - `docs/design.md`: the agreed design and milestones
@@ -46,4 +46,5 @@ npm install
 - [x] M0: Foundations
 - [x] M1: Range charts and grid
 - [x] M2: Open-or-fold drill
-- [ ] M3: Facing a raise, facing a 3-bet, blinds defense
+- [x] M3: Facing a raise, facing a 3-bet, blinds defense
+- [ ] M4: Lessons, glossary, tap-to-explain, locked progression

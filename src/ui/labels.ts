@@ -1,5 +1,7 @@
 import type { ChartSpot } from '../core/charts'
+import type { DrillChoice, DrillSpot } from '../core/dealing'
 import type { HandCategory } from '../core/hands'
+import type { Position } from '../core/positions'
 
 export const SPOT_TITLES: Record<ChartSpot, string> = {
   rfi: 'Open or fold',
@@ -37,4 +39,49 @@ export function handName(hand: string): string {
 
 export function percent(x: number): string {
   return `${(x * 100).toFixed(x < 0.1 ? 1 : 0)}%`
+}
+
+export const DRILL_SPOT_TITLES: Record<DrillChoice, string> = {
+  rfi: 'Open or fold',
+  'facing-open': 'Facing a raise',
+  blinds: 'Blinds defense',
+  'facing-3bet': 'Facing a 3-bet',
+  mixed: 'Mixed',
+}
+
+export const DRILL_SPOT_NOTES: Record<DrillChoice, string> = {
+  rfi: 'Folded to you: raise or fold',
+  'facing-open': 'Someone raised: fold, call or 3-bet',
+  blinds: 'SB/BB vs a raise: defend or fold',
+  'facing-3bet': 'You opened, got 3-bet: fold, call or 4-bet',
+  mixed: 'All of the above, shuffled together',
+}
+
+/** Merges runs of folds: ["UTG folds", "UTG+1 folds", "MP raises…"] → "UTG and UTG+1 fold. MP raises…" */
+export function describeHistory(history: string[]): string[] {
+  const out: string[] = []
+  let folds: string[] = []
+  const flush = () => {
+    if (folds.length === 1) out.push(`${folds[0]} folds`)
+    else if (folds.length === 2) out.push(`${folds[0]} and ${folds[1]} fold`)
+    else if (folds.length > 2) out.push(`${folds[0]} to ${folds[folds.length - 1]} fold`)
+    folds = []
+  }
+  for (const h of history) {
+    const m = /^(\S+) folds$/.exec(h)
+    if (m) folds.push(m[1])
+    else {
+      flush()
+      out.push(h)
+    }
+  }
+  flush()
+  return out
+}
+
+/** Short description of the spot for feedback lines. */
+export function spotContext(type: DrillSpot, hero: Position, villain?: Position): string {
+  if (type === 'rfi') return `from ${hero}`
+  if (type === 'facing-3bet') return `after your ${hero} open vs a ${villain} 3-bet`
+  return `in the ${hero} vs a ${villain} raise`
 }
