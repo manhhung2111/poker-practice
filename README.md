@@ -80,14 +80,12 @@ Testing tip: open the app with `#unlock-all` at the end of the URL to unlock eve
 
 ## Install on your phone
 
-The claude.ai preview link can't be installed (previews don't allow offline service
-workers). To install the app on your home screen, host the `dist/` folder on any HTTPS
-static host, for example:
+The app is hosted at **https://manhhung2111.github.io/poker-practice/**. Every push to
+`main` lints, tests, builds and redeploys it (`.github/workflows/deploy.yml`).
 
-- **GitHub Pages:** push the repo, build with `npm run build`, publish `dist/`
-  (e.g. with a Pages workflow or the `gh-pages` branch). Paths are relative, so a
-  `/repo-name/` subfolder works.
-- **Netlify / Vercel / Cloudflare Pages:** build command `npm run build`, output folder `dist`.
+The claude.ai preview link can't be installed (previews don't allow offline service
+workers). Any HTTPS static host works too: build with `npm run build` and publish `dist/`.
+Paths are relative, so a `/repo-name/` subfolder works.
 
 Then open the URL on your phone:
 - **iPhone (Safari):** Share → Add to Home Screen.
