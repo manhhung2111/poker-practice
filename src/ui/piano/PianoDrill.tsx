@@ -112,11 +112,12 @@ export function PianoDrill({ settings, stats, active, onAnswer, onExit }: Props)
           <h1>Session done</h1>
         </header>
         <div className="summary">
-          <div className="big-score">
-            {pct(right, count)}%<span>{right} of {count} right</span>
-          </div>
+          <p className="big-score">
+            {right}
+            <span>/{count}</span>
+          </p>
           <p className="muted">
-            {(totalMs / Math.max(count, 1) / 1000).toFixed(1)} s per note · best streak {best}
+            {pct(right, count)}% right · {(totalMs / Math.max(count, 1) / 1000).toFixed(1)} s per note · best streak {best}
           </p>
           {uniqueMissed.length > 0 && (
             <section className="section">

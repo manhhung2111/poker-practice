@@ -39,6 +39,7 @@ describe('Piano drill', () => {
     act(() => vi.advanceTimersByTime(1600))
     expect(screen.getByText('Session done')).toBeTruthy()
     const right = answers.filter((a) => a.correct).length
-    expect(screen.getByText(`${right} of 2 right`)).toBeTruthy()
+    expect(screen.getByText(`/2`)).toBeTruthy()
+    expect(screen.getByText(new RegExp(`^${right * 50}% right`))).toBeTruthy()
   })
 })
