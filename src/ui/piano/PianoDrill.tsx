@@ -162,8 +162,8 @@ export function PianoDrill({ settings, stats, active, onAnswer, onExit }: Props)
         <Staff
           clefs={clefsFor(settings.hand)}
           level={settings.level}
-          prompt={prompt}
-          mark={feedback ? (feedback.correct ? 'right' : 'wrong') : 'neutral'}
+          clef={prompt.clef}
+          columns={[{ notes: [prompt.note], mark: feedback ? (feedback.correct ? 'right' : 'wrong') : 'neutral' }]}
         />
         <p className={`note-feedback${feedback ? (feedback.correct ? ' right' : ' wrong') : ''}`} role="status">
           {feedback
