@@ -14,6 +14,8 @@ import { type KeyMark, Keyboard } from './Keyboard'
 import { type PianoSettings, sessionLength } from './settings'
 import { Staff } from './Staff'
 import { MIDI_STATUS_TEXT, useMidi } from './useMidi'
+import { SessionSummary } from './SessionSummary'
+import { handOf, pct } from './drillUtils'
 
 interface Props {
   settings: PianoSettings
@@ -32,7 +34,6 @@ interface Feedback {
 const NEXT_AFTER_RIGHT = 450
 const NEXT_AFTER_WRONG = 1600
 
-const pct = (a: number, b: number) => (b ? Math.round((a / b) * 100) : 0)
 
 export function PianoDrill({ settings, stats, active, onAnswer, onExit }: Props) {
   const total = sessionLength(settings)
@@ -102,45 +103,16 @@ export function PianoDrill({ settings, stats, active, onAnswer, onExit }: Props)
   // Only a MIDI keyboard can name the right letter in the wrong octave.
   const wrongOctave = feedback && !feedback.correct && feedback.pressed === pitchClass(prompt.note)
 
-  if (done) {
-    const uniqueMissed = [...new Map(missed.map((p) => [`${p.clef}:${noteName(p.note)}`, p])).values()]
+  if (done)
     return (
-      <>
-        <header className="header">
-          <button type="button" className="back" aria-label="Back to setup" onClick={onExit}>
-            ‹
-          </button>
-          <h1>Session done</h1>
-        </header>
-        <div className="summary">
-          <p className="big-score">
-            {right}
-            <span>/{count}</span>
-          </p>
-          <p className="muted">
-            {pct(right, count)}% right · {(totalMs / Math.max(count, 1) / 1000).toFixed(1)} s per note · best streak {best}
-          </p>
-          {uniqueMissed.length > 0 && (
-            <section className="section">
-              <h2>Missed</h2>
-              <ul className="note-chips">
-                {uniqueMissed.map((p) => (
-                  <li key={`${p.clef}:${noteName(p.note)}`}>
-                    {noteName(p.note)} <span className="muted">{p.clef === 'treble' ? 'RH' : 'LH'}</span>
-                  </li>
-                ))}
-              </ul>
-            </section>
-          )}
-          <div className="summary-actions">
-            <button type="button" className="primary" onClick={onExit}>
-              Done
-            </button>
-          </div>
-        </div>
-      </>
+      <SessionSummary
+        right={right}
+        total={count}
+        detail={`${pct(right, count)}% right · ${(totalMs / Math.max(count, 1) / 1000).toFixed(1)} s per note · best streak ${best}`}
+        missed={missed.map((p) => ({ key: `${p.clef}:${noteName(p.note)}`, label: noteName(p.note), hand: handOf(p.clef) }))}
+        onExit={onExit}
+      />
     )
-  }
 
   return (
     <div className="piano-drill">
