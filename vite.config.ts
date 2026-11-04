@@ -21,9 +21,9 @@ export default defineConfig(({ mode }) => {
             registerType: 'autoUpdate',
             includeAssets: ['icon.svg', 'apple-touch-icon.png'],
             manifest: {
-              name: 'Poker Practice Trainer',
-              short_name: 'Poker Trainer',
-              description: 'Practice 9-max preflop decisions by position and cards.',
+              name: 'Practice Hub',
+              short_name: 'Practice Hub',
+              description: 'Practice drills: poker decisions and piano note reading.',
               theme_color: '#0e1311',
               background_color: '#0e1311',
               display: 'standalone',
