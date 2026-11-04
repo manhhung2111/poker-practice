@@ -5,6 +5,11 @@
 import { renderToString } from 'react-dom/server'
 import { describe, expect, it } from 'vitest'
 import App from '../App'
+import { PokerApp } from '../PokerApp'
+import { PianoApp } from './piano/PianoApp'
+import { PianoStatsScreen } from './piano/PianoStats'
+import { PianoDrill } from './piano/PianoDrill'
+import { DEFAULT_PIANO_SETTINGS } from './piano/settings'
 import { allowedSeats } from '../core/progress'
 import { entry } from '../core/testLog'
 import { DEFAULT_CHART_DEFS, DEFAULT_CHARTS } from '../data/charts'
@@ -23,7 +28,17 @@ const allowed = allowedSeats({}, LESSONS)
 
 describe('screens render', () => {
   it('the whole app', () => {
-    expect(renderToString(<App />)).toContain('Preflop course')
+    expect(renderToString(<PokerApp />)).toContain('Preflop course')
+  })
+
+  it('the hub home and piano screens', () => {
+    expect(renderToString(<App />)).toContain('Practice Hub')
+    expect(renderToString(<PianoApp />)).toContain('Read notes')
+    for (const hand of ['right', 'left', 'both'] as const)
+      for (const level of ['staff', 'ledger', 'wide'] as const)
+        expect(renderToString(<PianoDrill settings={{ ...DEFAULT_PIANO_SETTINGS, hand, level, accidentals: true }} stats={{}} active onAnswer={noop} onExit={noop} />)).toContain('Which note')
+    expect(renderToString(<PianoStatsScreen stats={{}} onReset={noop} />)).toContain('No notes yet')
+    expect(renderToString(<PianoStatsScreen stats={{ 'treble:F♯4': { n: 4, correct: 1, ms: 9000 } }} onReset={noop} />)).toContain('Practise these')
   })
 
   it('learn screens', () => {

@@ -1,5 +1,13 @@
 # Practice Hub
 
+A phone-first practice app with two sections, picked from the home screen:
+
+- **Poker**: the trainer described below.
+- **Piano**: note-reading drills. Notes appear on the treble clef (right hand), the bass clef (left hand)
+  or the grand staff (both). Answer on the on-screen keyboard or a MIDI keyboard. Accuracy and speed
+  are tracked per note, and missed notes come up more often. Piano stats stay on the device and are
+  not in the poker backup file yet.
+
 Phone-first trainer for 9-max 100bb cash preflop decisions: drills by position and cards,
 lessons, stats, and later full hands against bots. Full design: [docs/design.md](docs/design.md).
 
