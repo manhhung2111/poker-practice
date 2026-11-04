@@ -1,4 +1,4 @@
-# Poker Practice Trainer
+# Practice Hub
 
 Phone-first trainer for 9-max 100bb cash preflop decisions: drills by position and cards,
 lessons, stats, and later full hands against bots. Full design: [docs/design.md](docs/design.md).
@@ -80,7 +80,7 @@ Testing tip: open the app with `#unlock-all` at the end of the URL to unlock eve
 
 ## Install on your phone
 
-The app is hosted at **https://manhhung2111.github.io/poker-practice/**. Every push to
+The app is hosted at **https://manhhung2111.github.io/practice-hub/**. Every push to
 `main` lints, tests, builds and redeploys it (`.github/workflows/deploy.yml`).
 
 The claude.ai preview link can't be installed (previews don't allow offline service
