@@ -52,9 +52,11 @@ export function PianoDrill({ settings, stats, active, onAnswer, onExit }: Props)
   const shownAt = useRef(Date.now())
   const done = settings.length > 0 && count >= settings.length && !feedback
 
+  // The clock restarts on each note and whenever the drill comes back into view, so time spent on
+  // another tab doesn't count as reading time.
   useEffect(() => {
-    shownAt.current = Date.now()
-  }, [prompt])
+    if (active) shownAt.current = Date.now()
+  }, [prompt, active])
 
   const advance = useCallback(() => {
     setFeedback(null)
@@ -77,10 +79,8 @@ export function PianoDrill({ settings, stats, active, onAnswer, onExit }: Props)
     setTotalMs((t) => t + ms)
     if (ok) {
       setRight((r) => r + 1)
-      setStreak((s) => {
-        setBest((b) => Math.max(b, s + 1))
-        return s + 1
-      })
+      setStreak(streak + 1)
+      setBest(Math.max(best, streak + 1))
     } else {
       setStreak(0)
       setMissed((m) => [...m, prompt])
@@ -92,11 +92,14 @@ export function PianoDrill({ settings, stats, active, onAnswer, onExit }: Props)
   const marks: Partial<Record<number, KeyMark>> = {}
   if (feedback) {
     if (feedback.correct) marks[feedback.pressed] = 'right'
+    else if (feedback.pressed === pitchClass(prompt.note)) marks[feedback.pressed] = 'wrong'
     else {
       marks[feedback.pressed] = 'wrong'
       marks[pitchClass(prompt.note)] = 'answer'
     }
   }
+  // Only a MIDI keyboard can name the right letter in the wrong octave.
+  const wrongOctave = feedback && !feedback.correct && feedback.pressed === pitchClass(prompt.note)
 
   if (done) {
     const uniqueMissed = [...new Map(missed.map((p) => [`${p.clef}:${noteName(p.note)}`, p])).values()]
@@ -164,7 +167,9 @@ export function PianoDrill({ settings, stats, active, onAnswer, onExit }: Props)
           {feedback
             ? feedback.correct
               ? `${letterName(prompt.note)} ✓`
-              : `It's ${noteName(prompt.note)}`
+              : wrongOctave
+                ? `Right note, wrong octave: it's ${noteName(prompt.note)}`
+                : `It's ${noteName(prompt.note)}`
             : settings.midi && midiStatus !== 'off'
               ? MIDI_STATUS_TEXT[midiStatus]
               : 'Which note is this?'}
