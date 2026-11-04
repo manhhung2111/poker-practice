@@ -1,6 +1,7 @@
 import { useEffect, useMemo, useRef, useState } from 'react'
 import { ROW_LENGTH, makeRow, phaseFor } from '../../core/piano/melody'
 import { type Clef, type Note, type Prompt, clefsFor, isCorrect, letterName, noteName } from '../../core/piano/notes'
+import { MS_CAP } from '../../core/piano/stats'
 import { type KeyMark, Keyboard } from './Keyboard'
 import { type PianoSettings, sessionLength } from './settings'
 import { type NoteMark, Staff } from './Staff'
@@ -28,8 +29,10 @@ interface Row {
 export function RowDrill({ settings, active, onNote, onRow, onExit }: Props) {
   const total = sessionLength(settings)
   const clefs = useMemo(() => clefsFor(settings.hand), [settings.hand])
-  const newRow = (index: number): Row => {
-    const clef = clefs[Math.floor(Math.random() * clefs.length)]
+  // With both hands the staff alternates row to row; the first one is random.
+  const newRow = (index: number, prev?: Clef): Row => {
+    const others = clefs.filter((c) => c !== prev)
+    const clef = others[Math.floor(Math.random() * others.length)]
     return { clef, notes: makeRow(clef, settings.level, settings.accidentals, phaseFor(index, total)) }
   }
 
@@ -47,9 +50,12 @@ export function RowDrill({ settings, active, onNote, onRow, onExit }: Props) {
   const [done, setDone] = useState(false)
 
   const clock = useVisibleClock(active)
-  const rowStart = useRef(clock())
   const lastAt = useRef(clock())
+  /** Row time so far: the sum of note times, each capped like Single notes. */
+  const rowMs = useRef(0)
   const rowRight = useRef(0)
+  // Read and advanced synchronously, so two presses before a re-render grade two different notes.
+  const posRef = useRef(0)
   const waiting = pos >= ROW_LENGTH
 
   useEffect(() => {
@@ -57,13 +63,15 @@ export function RowDrill({ settings, active, onNote, onRow, onExit }: Props) {
     const t = setTimeout(() => {
       if (total && rowIndex + 1 >= total) return setDone(true)
       setRowIndex((i) => i + 1)
-      setRow(newRow(rowIndex + 1))
+      setRow(newRow(rowIndex + 1, row.clef))
       setPos(0)
+      posRef.current = 0
+      rowMs.current = 0
       setMarks([])
       setKeyMarks({})
       setLast(null)
       rowRight.current = 0
-      rowStart.current = lastAt.current = clock()
+      lastAt.current = clock()
     }, NEXT_ROW_AFTER)
     return () => clearTimeout(t)
     // newRow reads settings only; the row advances once per finished row.
@@ -71,12 +79,16 @@ export function RowDrill({ settings, active, onNote, onRow, onExit }: Props) {
   }, [waiting])
 
   const answer = (midi: number, exact: boolean) => {
-    if (!active || waiting || done) return
-    const note = row.notes[pos]
+    const at = posRef.current
+    if (!active || at >= ROW_LENGTH || done) return
+    posRef.current = at + 1
+    const note = row.notes[at]
     const ok = isCorrect(note, midi, exact)
     const now = clock()
-    onNote({ clef: row.clef, note }, ok, now - lastAt.current)
+    const ms = now - lastAt.current
+    onNote({ clef: row.clef, note }, ok, ms)
     lastAt.current = now
+    rowMs.current += Math.min(ms, MS_CAP)
     setMarks((m) => [...m, ok ? 'right' : 'wrong'])
     setKeyMarks({ [((midi % 12) + 12) % 12]: ok ? 'right' : 'wrong' })
     setLast({ ok, note })
@@ -85,13 +97,13 @@ export function RowDrill({ settings, active, onNote, onRow, onExit }: Props) {
       setRight((r) => r + 1)
       rowRight.current++
     } else setMissed((m) => [...m, { key: `${row.clef}:${noteName(note)}`, label: noteName(note), hand: handOf(row.clef) }])
-    if (pos + 1 === ROW_LENGTH) {
-      const ms = now - rowStart.current
-      onRow(rowRight.current, ROW_LENGTH, ms)
-      setRowsMs((t) => t + ms)
+    if (at + 1 === ROW_LENGTH) {
+      const rowTime = rowMs.current
+      onRow(rowRight.current, ROW_LENGTH, rowTime)
+      setRowsMs((t) => t + rowTime)
       if (rowRight.current === ROW_LENGTH) setClean((c) => c + 1)
     }
-    setPos(pos + 1)
+    setPos(at + 1)
   }
 
   const midiStatus = useMidi(settings.midi && active && !done, (m) => answer(m, true))

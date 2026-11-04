@@ -46,4 +46,38 @@ describe('Read a row', () => {
     fireEvent.click(screen.getByRole('button', { name: 'C' }))
     expect(ms[0]).toBeLessThan(1000)
   })
+
+  it('grades two presses before a re-render against two different notes', () => {
+    const seen: string[] = []
+    render(<RowDrill settings={settings} active onNote={(p) => seen.push(`${p.note.letter}${p.note.octave}`)} onRow={() => {}} onExit={() => {}} />)
+    const c = screen.getByRole('button', { name: 'C' })
+    act(() => {
+      c.click()
+      c.click()
+    })
+    expect(seen).toHaveLength(2)
+    expect(seen[0]).not.toBe(seen[1])
+  })
+
+  it('caps long pauses in the row time like note times', () => {
+    const rows: number[] = []
+    render(<RowDrill settings={settings} active onNote={() => {}} onRow={(_r, _t, ms) => rows.push(ms)} onExit={() => {}} />)
+    for (let i = 0; i < 6; i++) {
+      act(() => vi.advanceTimersByTime(60000))
+      fireEvent.click(screen.getByRole('button', { name: 'C' }))
+    }
+    expect(rows[0]).toBe(6 * 15000)
+  })
+
+  it('switches staff every row when both hands are chosen', () => {
+    const both: PianoSettings = { ...settings, hand: 'both', lengths: { ...settings.lengths, row: 4 } }
+    render(<RowDrill settings={both} active onNote={() => {}} onRow={() => {}} onExit={() => {}} />)
+    const staffs: string[] = []
+    for (let r = 0; r < 4; r++) {
+      staffs.push(screen.getByText(/hand · (treble|bass)/).textContent!.includes('treble') ? 'treble' : 'bass')
+      for (let i = 0; i < 6; i++) fireEvent.click(screen.getByRole('button', { name: 'C' }))
+      act(() => vi.advanceTimersByTime(700))
+    }
+    expect(staffs.slice(1).every((s, i) => s !== staffs[i])).toBe(true)
+  })
 })

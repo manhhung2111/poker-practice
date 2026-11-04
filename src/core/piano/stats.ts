@@ -12,7 +12,7 @@ export interface NoteStat {
 export type PianoStats = Record<string, NoteStat>
 
 /** Answers slower than this count as a pause, not reading time. */
-const MS_CAP = 15000
+export const MS_CAP = 15000
 
 /** Adds one answer to the item at `key`. */
 export function recordStat<T extends Record<string, NoteStat>>(stats: T, key: string, correct: boolean, ms: number): T {
