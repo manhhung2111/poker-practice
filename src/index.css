@@ -2523,3 +2523,11 @@ code {
 .link-button.danger {
   color: var(--raise);
 }
+
+.piano-drill.with-check {
+  padding-bottom: 230px;
+}
+
+.check-button {
+  margin-top: 10px;
+}
