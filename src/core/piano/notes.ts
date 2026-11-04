@@ -36,7 +36,7 @@ export function noteFromDiatonic(d: number, acc: Note['acc'] = 0): Note {
 }
 
 /** Bottom staff line: E4 for treble, G2 for bass. */
-const BOTTOM_LINE: Record<Clef, number> = { treble: 4 * 7 + 2, bass: 2 * 7 + 4 }
+export const BOTTOM_LINE: Record<Clef, number> = { treble: 4 * 7 + 2, bass: 2 * 7 + 4 }
 
 /** Position on the staff: 0 = bottom line, 1 = first space, … 8 = top line. Negative is below. */
 export const staffStep = (n: Note, clef: Clef) => diatonic(n) - BOTTOM_LINE[clef]
@@ -71,6 +71,12 @@ export const clefsFor = (hand: Hand): Clef[] => (hand === 'right' ? ['treble'] :
 /** Letters that take a sharp / flat without landing on another white key (no E♯, C♭ …). */
 const SHARPABLE = new Set([0, 1, 3, 4, 5]) // C D F G A
 const FLATTABLE = new Set([1, 2, 4, 5, 6]) // D E G A B
+
+/** The ♯/♭ a letter can take without landing on another white key. */
+export const allowedAccidentals = (letter: number): (-1 | 1)[] => [
+  ...(SHARPABLE.has(letter) ? [1 as const] : []),
+  ...(FLATTABLE.has(letter) ? [-1 as const] : []),
+]
 
 /** Every prompt a hand and level can produce. */
 export function promptPool(hand: Hand, level: Level, accidentals: boolean): Prompt[] {
