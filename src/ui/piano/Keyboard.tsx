@@ -1,6 +1,7 @@
 import { PITCH_CLASS_NAMES } from '../../core/piano/notes'
 
-export type KeyMark = 'right' | 'wrong' | 'answer'
+/** answer = the right key after a wrong single note; selected = picked for a chord; missed = a chord key not picked. */
+export type KeyMark = 'right' | 'wrong' | 'answer' | 'selected' | 'missed'
 
 interface Props {
   /** Pitch class (0–11) → highlight. */

@@ -17,7 +17,7 @@ describe('Piano drill', () => {
     const answers: { p: Prompt; correct: boolean }[] = []
     render(
       <PianoDrill
-        settings={{ ...DEFAULT_PIANO_SETTINGS, length: 2 }}
+        settings={{ ...DEFAULT_PIANO_SETTINGS, lengths: { ...DEFAULT_PIANO_SETTINGS.lengths, single: 2 } }}
         stats={{}}
         active
         onAnswer={(p, correct) => answers.push({ p, correct })}

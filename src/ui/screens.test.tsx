@@ -10,6 +10,9 @@ import { PianoApp } from './piano/PianoApp'
 import { PianoStatsScreen } from './piano/PianoStats'
 import { PianoDrill } from './piano/PianoDrill'
 import { DEFAULT_PIANO_SETTINGS } from './piano/settings'
+import { RowDrill } from './piano/RowDrill'
+import { ChordDrill } from './piano/ChordDrill'
+import { EMPTY_ROWS } from '../core/piano/stats'
 import { allowedSeats } from '../core/progress'
 import { entry } from '../core/testLog'
 import { DEFAULT_CHART_DEFS, DEFAULT_CHARTS } from '../data/charts'
@@ -37,8 +40,26 @@ describe('screens render', () => {
     for (const hand of ['right', 'left', 'both'] as const)
       for (const level of ['staff', 'ledger', 'wide'] as const)
         expect(renderToString(<PianoDrill settings={{ ...DEFAULT_PIANO_SETTINGS, hand, level, accidentals: true }} stats={{}} active onAnswer={noop} onExit={noop} />)).toContain('Which note')
-    expect(renderToString(<PianoStatsScreen stats={{}} onReset={noop} />)).toContain('No notes yet')
-    expect(renderToString(<PianoStatsScreen stats={{ 'treble:F♯4': { n: 4, correct: 1, ms: 9000 } }} onReset={noop} />)).toContain('Practise these')
+    for (const hand of ['right', 'left', 'both'] as const)
+      for (const level of ['staff', 'ledger', 'wide'] as const)
+        for (const accidentals of [false, true]) {
+          const s = { ...DEFAULT_PIANO_SETTINGS, hand, level, accidentals }
+          expect(renderToString(<RowDrill settings={{ ...s, mode: 'row' }} active onNote={noop} onRow={noop} onExit={noop} />)).toContain('Row 1 / 10')
+          expect(renderToString(<ChordDrill settings={{ ...s, mode: 'chord' }} chordStats={{}} active onChord={noop} onExit={noop} />)).toContain('Check')
+        }
+    expect(renderToString(<PianoStatsScreen stats={{}} rows={EMPTY_ROWS} chords={{}} onReset={noop} />)).toContain('No notes yet')
+    expect(renderToString(<PianoStatsScreen stats={{ 'treble:F♯4': { n: 4, correct: 1, ms: 9000 } }} rows={EMPTY_ROWS} chords={{}} onReset={noop} />)).toContain('Practise these')
+    const withMore = renderToString(
+      <PianoStatsScreen
+        stats={{}}
+        rows={{ rows: 4, clean: 1, notes: 24, correct: 20, ms: 40000 }}
+        chords={{ 'treble:F major': { n: 4, correct: 1, ms: 9000 }, 'bass:A minor': { n: 2, correct: 2, ms: 3000 } }}
+        onReset={noop}
+      />,
+    )
+    expect(withMore).toContain('4 rows')
+    expect(withMore).toContain('F major')
+    expect(withMore).not.toContain('No notes yet')
   })
 
   it('learn screens', () => {

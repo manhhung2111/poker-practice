@@ -11,9 +11,11 @@ import {
 } from '../../core/piano/notes'
 import { type PianoStats, noteWeight } from '../../core/piano/stats'
 import { type KeyMark, Keyboard } from './Keyboard'
-import type { PianoSettings } from './settings'
+import { type PianoSettings, sessionLength } from './settings'
 import { Staff } from './Staff'
 import { MIDI_STATUS_TEXT, useMidi } from './useMidi'
+import { SessionSummary } from './SessionSummary'
+import { handOf, pct } from './drillUtils'
 
 interface Props {
   settings: PianoSettings
@@ -32,9 +34,9 @@ interface Feedback {
 const NEXT_AFTER_RIGHT = 450
 const NEXT_AFTER_WRONG = 1600
 
-const pct = (a: number, b: number) => (b ? Math.round((a / b) * 100) : 0)
 
 export function PianoDrill({ settings, stats, active, onAnswer, onExit }: Props) {
+  const total = sessionLength(settings)
   const pool = useMemo(() => promptPool(settings.hand, settings.level, settings.accidentals), [settings])
   // Weights are read when a note is picked, so they follow the latest stats without re-dealing.
   const statsRef = useRef(stats)
@@ -50,7 +52,7 @@ export function PianoDrill({ settings, stats, active, onAnswer, onExit }: Props)
   const [missed, setMissed] = useState<Prompt[]>([])
   const [totalMs, setTotalMs] = useState(0)
   const shownAt = useRef(Date.now())
-  const done = settings.length > 0 && count >= settings.length && !feedback
+  const done = total > 0 && count >= total && !feedback
 
   // The clock restarts on each note and whenever the drill comes back into view, so time spent on
   // another tab doesn't count as reading time.
@@ -101,45 +103,16 @@ export function PianoDrill({ settings, stats, active, onAnswer, onExit }: Props)
   // Only a MIDI keyboard can name the right letter in the wrong octave.
   const wrongOctave = feedback && !feedback.correct && feedback.pressed === pitchClass(prompt.note)
 
-  if (done) {
-    const uniqueMissed = [...new Map(missed.map((p) => [`${p.clef}:${noteName(p.note)}`, p])).values()]
+  if (done)
     return (
-      <>
-        <header className="header">
-          <button type="button" className="back" aria-label="Back to setup" onClick={onExit}>
-            ‹
-          </button>
-          <h1>Session done</h1>
-        </header>
-        <div className="summary">
-          <p className="big-score">
-            {right}
-            <span>/{count}</span>
-          </p>
-          <p className="muted">
-            {pct(right, count)}% right · {(totalMs / Math.max(count, 1) / 1000).toFixed(1)} s per note · best streak {best}
-          </p>
-          {uniqueMissed.length > 0 && (
-            <section className="section">
-              <h2>Missed</h2>
-              <ul className="note-chips">
-                {uniqueMissed.map((p) => (
-                  <li key={`${p.clef}:${noteName(p.note)}`}>
-                    {noteName(p.note)} <span className="muted">{p.clef === 'treble' ? 'RH' : 'LH'}</span>
-                  </li>
-                ))}
-              </ul>
-            </section>
-          )}
-          <div className="summary-actions">
-            <button type="button" className="primary" onClick={onExit}>
-              Done
-            </button>
-          </div>
-        </div>
-      </>
+      <SessionSummary
+        right={right}
+        total={count}
+        detail={`${pct(right, count)}% right · ${(totalMs / Math.max(count, 1) / 1000).toFixed(1)} s per note · best streak ${best}`}
+        missed={missed.map((p) => ({ key: `${p.clef}:${noteName(p.note)}`, label: noteName(p.note), hand: handOf(p.clef) }))}
+        onExit={onExit}
+      />
     )
-  }
 
   return (
     <div className="piano-drill">
@@ -148,7 +121,7 @@ export function PianoDrill({ settings, stats, active, onAnswer, onExit }: Props)
           ‹
         </button>
         <h1 className="progress">
-          {settings.length ? `${Math.min(count + (feedback ? 0 : 1), settings.length)} / ${settings.length}` : `${count} notes`}
+          {total ? `${Math.min(count + (feedback ? 0 : 1), total)} / ${total}` : `${count} notes`}
           <span className="score muted"> · {pct(right, count)}%</span>
         </h1>
         <span className="streak" aria-label="Streak">
@@ -161,8 +134,8 @@ export function PianoDrill({ settings, stats, active, onAnswer, onExit }: Props)
         <Staff
           clefs={clefsFor(settings.hand)}
           level={settings.level}
-          prompt={prompt}
-          mark={feedback ? (feedback.correct ? 'right' : 'wrong') : 'neutral'}
+          clef={prompt.clef}
+          columns={[{ notes: [prompt.note], mark: feedback ? (feedback.correct ? 'right' : 'wrong') : 'neutral' }]}
         />
         <p className={`note-feedback${feedback ? (feedback.correct ? ' right' : ' wrong') : ''}`} role="status">
           {feedback

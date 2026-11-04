@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest'
 import type { Prompt } from './notes'
-import { noteWeight, parsePianoStats, recordNote, summarize, weakest } from './stats'
+import { EMPTY_ROWS, noteWeight, parseKeyedStats, parsePianoStats, parseRowTotals, recordNote, recordRow, recordStat, statWeight, summarize, weakest } from './stats'
 
 const c4: Prompt = { clef: 'treble', note: { letter: 0, octave: 4, acc: 0 } }
 const g2: Prompt = { clef: 'bass', note: { letter: 4, octave: 2, acc: 0 } }
@@ -38,5 +38,33 @@ describe('piano stats', () => {
       'treble:C4': { n: 2, correct: 1, ms: 100 },
     })
     expect(parsePianoStats(null)).toEqual({})
+  })
+})
+
+describe('keyed stats and rows', () => {
+  it('records any key and parses chord keys', () => {
+    const s = recordStat({}, 'treble:F major', true, 1200)
+    expect(s).toEqual({ 'treble:F major': { n: 1, correct: 1, ms: 1200 } })
+    expect(parseKeyedStats({ 'treble:F major': { n: 2, correct: 2, ms: 5 }, nope: { n: 1, correct: 0, ms: 0 } }, /^(treble|bass):/)).toEqual({
+      'treble:F major': { n: 2, correct: 2, ms: 5 },
+    })
+  })
+
+  it('weights unseen and missed items above known ones', () => {
+    expect(statWeight(undefined)).toBeGreaterThan(statWeight({ n: 10, correct: 10, ms: 8000 }))
+    expect(statWeight({ n: 4, correct: 0, ms: 4000 })).toBeGreaterThan(statWeight({ n: 4, correct: 4, ms: 4000 }))
+  })
+
+  it('counts a clean row only when every note was right', () => {
+    let t = recordRow(EMPTY_ROWS, 6, 6, 9000)
+    t = recordRow(t, 5, 6, 11000)
+    expect(t).toEqual({ rows: 2, clean: 1, notes: 12, correct: 11, ms: 20000 })
+  })
+
+  it('parses row totals and rejects junk', () => {
+    expect(parseRowTotals({ rows: 2, clean: 1, notes: 12, correct: 11, ms: 20000 })).toEqual({ rows: 2, clean: 1, notes: 12, correct: 11, ms: 20000 })
+    expect(parseRowTotals({ rows: -1, clean: 0, notes: 0, correct: 0, ms: 0 })).toEqual(EMPTY_ROWS)
+    expect(parseRowTotals({ rows: 1, clean: 2, notes: 6, correct: 6, ms: 1 })).toEqual(EMPTY_ROWS)
+    expect(parseRowTotals('x')).toEqual(EMPTY_ROWS)
   })
 })

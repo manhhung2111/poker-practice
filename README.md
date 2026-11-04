@@ -3,9 +3,10 @@
 A phone-first practice app with two sections, picked from the home screen:
 
 - **Poker**: the trainer described below.
-- **Piano**: note-reading drills. Notes appear on the treble clef (right hand), the bass clef (left hand)
-  or the grand staff (both). Answer on the on-screen keyboard or a MIDI keyboard. Accuracy and speed
-  are tracked per note, and missed notes come up more often. Piano stats stay on the device and are
+- **Piano**: note-reading drills on the treble clef (right hand), the bass clef (left hand) or both.
+  Three drills: **Single notes**; **Read a row** (six notes left to right, stepwise melodies first, then
+  jumps); **Chords** (play the three keys of a major or minor chord). Answer on the on-screen keyboard or
+  a MIDI keyboard. Accuracy and speed are tracked per note and per chord, and missed ones come up more often. Piano stats stay on the device and are
   not in the poker backup file yet.
 
 Phone-first trainer for 9-max 100bb cash preflop decisions: drills by position and cards,
